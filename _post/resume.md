@@ -1,3 +1,8 @@
+---
+layout: post
+title: Resume
+---
+
 ### 인적사항 (Personal Detilas)
 
 Name : 이승준 (Lee Sueung Jun)
