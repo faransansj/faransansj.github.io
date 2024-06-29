@@ -1,6 +1,6 @@
 ---
 layout: post
-title: Resume
+title: "Resume"
 ---
 
 ### 인적사항 (Personal Detilas)
