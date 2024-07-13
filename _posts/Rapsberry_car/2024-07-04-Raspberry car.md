@@ -41,10 +41,12 @@ asdf
 
 ### Chapter. Motor 
 5.1 [서보모터]()  
-2.2 [DC모터]()  
-3.3 [모터드라이버]()
+5.2 [DC모터]()  
+5.3 [모터드라이버]()
 
 ### Chapter.6 Camera
+6.1 [Camera]()  
+6.2 [Camera로 실시간 스트리밍 하기]()  
 
 ### Project.1 Remote control car
 
