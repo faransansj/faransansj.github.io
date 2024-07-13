@@ -36,11 +36,11 @@ asdf
 4.4 [Ultra sonic sensor]()   
 4.5 [CDS sensor]()  
 
-### Chapter. Motor 
+### Chapter.5 Motor 
 
-### Chapter. Camera
+### Chapter.6 Camera
 
-### Project. 1 Remote control car
+### Project.1 Remote control car
 
-### Project. 2 Emergency stop system
+### Project.2 Emergency stop system
 
