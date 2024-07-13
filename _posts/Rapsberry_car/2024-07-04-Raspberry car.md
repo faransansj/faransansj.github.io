@@ -7,20 +7,19 @@ toc_sticky: true
 
 ---
 
-asdf  
-asdf  
-asdf  
+
+
+## LIST
 
 ### Chapter.1 Basic of Raspberry pi
-1.1 [라즈베리파이란](https://music.youtube.com/)   
-1.2 [pin map과 GPIO]()  
+1.1 [라즈베리파이란]()   
+1.2 [GPIO]()  
 1.3 [전원공급]()  
 
 ### Chapter.2 Raspbian OS
 2.1 [Raspbian OS 설치]()  
 2.2 [Raspbian OS 기초]()  
-2.3 [Terminal 기초]()  
-2.4 [Raspberry pi 성능 향상 시키기]()
+2.3 [Raspberry pi 성능 향상 시키기]()
 
 **Special Lecture** : [Python for Raspberry pi]()
 ### Chapter.3 Network 
@@ -36,8 +35,9 @@ asdf
 4.2 [Analog 입출력]()  
 4.3 [PWM 제어]()  
 
-4.4 [Ultra sonic sensor]()   
-4.5 [CDS sensor]()  
+4.4 [Switch]()
+4.5 [Ultra sonic sensor]()   
+4.6 [CDS sensor]()  
 
 ### Chapter. Motor 
 5.1 [서보모터]()  
