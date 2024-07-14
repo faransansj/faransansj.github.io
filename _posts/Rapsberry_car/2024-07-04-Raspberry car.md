@@ -7,14 +7,11 @@ toc_sticky: true
 
 ---
 
-
-
 ## LIST
 
 ### Chapter.1 Basic of Raspberry pi
-1.1 [라즈베리파이란]()   
+1.1 [라즈베리파이 개요]()   
 1.2 [GPIO]()  
-1.3 [전원공급]()  
 
 ### Chapter.2 Raspbian OS
 2.1 [Raspbian OS 설치]()  
@@ -51,4 +48,3 @@ toc_sticky: true
 ### Project.1 Remote control car
 
 ### Project.2 Emergency stop system
-
