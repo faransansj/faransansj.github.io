@@ -6,12 +6,16 @@ toc: true
 toc_sticky: true
 
 ---
+![raspberry pi banner](/assets/images/post/raspberry_pi/raspberry-pi-banner.png)  
+해당 포스트는 Raspberry pi를 이용해서 자율주행 모형 자동차를 만들때  
+알아둬야 할 내용들을 정리해 두었습니다.  
+
 
 ## LIST
 
 ### Chapter.1 Basic of Raspberry pi
-1.1 [라즈베리파이 개요]()   
-1.2 [GPIO]()  
+1.1 [라즈베리파이 개요](https://faransansj.github.io/about_raspberrypi/)   
+1.2 [GPIO](https://faransansj.github.io/GPIO/)  
 
 ### Chapter.2 Raspbian OS
 2.1 [Raspbian OS 설치]()  
