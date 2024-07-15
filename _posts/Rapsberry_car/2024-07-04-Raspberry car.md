@@ -18,18 +18,16 @@ toc_sticky: true
 1.2 [GPIO](https://faransansj.github.io/GPIO/)  
 
 ### Chapter.2 Raspbian OS
-2.1 [Raspbian OS 설치]()  
-2.2 [Raspbian OS 기초]()  
-2.3 [Raspberry pi 성능 향상 시키기]()
+2.1 [Raspbian OS 설치](https://faransansj.github.io/install_raspbian/)  
+2.2 [Raspbian OS 기초](https://faransansj.github.io/install_raspbian/)  
+2.3 [Raspberry pi 성능 향상 시키기](https://faransansj.github.io/Raspberrypi_overclock/)
 
-**Special Lecture** : [Python for Raspberry pi]()
+**Special Lecture** : [Python for Raspberry pi](https://faransansj.github.io/Python_for_Raspberry_pi/)
+
 ### Chapter.3 Network 
 3.1 [IP 네트워크]()   
 3.2 [SSH Connect]()  
 3.3 [VNC Connect]()
-
-3.4 [I2C 통신]()  
-3.5 [SPI 통신]()  
 
 ### Chapter.4 Sensor
 4.1 [Digital 입출력]()  
