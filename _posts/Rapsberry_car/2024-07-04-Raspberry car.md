@@ -32,20 +32,20 @@ toc_sticky: true
 4.2 [Analog 입출력]()  
 4.3 [PWM 제어]()  
 
-4.4 [GPIO](https://faransansj.github.io/GPIO/) 
+4.4 [GPIO](https://faransansj.github.io/GPIO/)   
 4.5 [Switch]()  
 4.6 [Ultra sonic sensor]()   
 4.7 [CDS sensor]()  
 
 **Special Lecture** : [기초 회로]()
-### Chapter. Motor 
+### Chapter.5 Motor 
 5.1 [서보모터]()  
 5.2 [DC모터]()  
 5.3 [모터드라이버]()
 
 ### Chapter.6 Camera
 6.1 [Camera]()  
-6.2 [Camera로 실시간 스트리밍 하기]()  
+6.2 [Camera로 실시간 스트리밍 하기](https://faransansj.github.io/Picamera/)  
 
 ### Project.1 Remote control car
 
