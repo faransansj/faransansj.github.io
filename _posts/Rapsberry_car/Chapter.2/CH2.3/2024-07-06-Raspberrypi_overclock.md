@@ -41,7 +41,8 @@ sudo service dphys-swapfile start
 
 ## Overclock
 ⚠️ **주의사항** : 오버클럭은 소모 전력이 증가하며 적절한 발열 관리가 이뤄지지 않을 경우 CPU에 손상이 갈 수 있습니다. 가급적 보수적으로 옵션을 설정하는 걸 권장합니다. 
-- **Dynamic Overclock**
+
+Raspberry pi configuration tool에서 overclock을 지원했으나 이는 Raspberry pi 1,2 model에서만 지원 됩니다. 
     
 
 
