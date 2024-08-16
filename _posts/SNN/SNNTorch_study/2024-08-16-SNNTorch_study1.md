@@ -1,6 +1,6 @@
 ---
 layout: single
-title: "[SNNTorch] Tutorial.1 Spike Encoding"
+title: "[SNNTorch] Tutorial 1 - Spike Encoding"
 categories: 
     - SNNTorch
 
@@ -131,9 +131,9 @@ SNN은 시간에 따라 변하는 데이터를 활용한다.
 
 SNNTorch에서 사용 가능한 Spike encoding은 세 가지가 존재한다.
 
-1) Rate coding -  spiking **frequency**
-2) latency coding -  spike **timing** 
-3) delta modulation -  temporal **change** of input features to generate spikes
+1) Rate coding -  spiking **frequency**  
+2) latency coding -  spike **timing**   
+3) delta modulation -  temporal **change** of input features to generate spikes  
 
 ---
 
