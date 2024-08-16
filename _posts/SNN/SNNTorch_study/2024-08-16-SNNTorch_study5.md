@@ -1,6 +1,6 @@
 ---
 layout: single
-title: "[SNNTorch] Tutorial 3 - The Leaky integrate and fire neuron"
+title: "[SNNTorch] Tutorial 5 - not yet"
 categories: 
     - SNNTorch
 
