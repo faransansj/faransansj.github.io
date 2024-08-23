@@ -1,6 +1,6 @@
 ---
 layout: single
-title: "[SNNTorch] Tutorial 5 - not yet"
+title: "[SNNTorch] Tutorial 5 - Training Spiking Neural Networks with snnTorch"
 categories: 
     - SNNTorch
 

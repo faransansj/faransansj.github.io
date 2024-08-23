@@ -1,6 +1,6 @@
 ---
 layout: single
-title: "[SNNTorch] Tutorial 4 - 2nd Order Spiking Neuron Models (Optional)"
+title: "[SNNTorch] Tutorial 7 - Neuromorphic Datasets with Tonic + snnTorch"
 categories: 
     - SNNTorch
 
