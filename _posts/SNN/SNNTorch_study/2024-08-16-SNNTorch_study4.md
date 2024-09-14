@@ -8,3 +8,6 @@ toc: true
 toc_sticky: true
 
 ---
+
+🎯 [Goal]
+1) LIF model의 
