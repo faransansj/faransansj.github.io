@@ -253,7 +253,7 @@
             if (isNaN(audio.duration)) return;
             const percentage = (audio.currentTime / audio.duration) * 100;
             progress.style.width = `${percentage}%`;
-            timeDisplay.textContent = formatTime(audio.currentTime);
+            timeDisplay.textContent = `${formatTime(audio.currentTime)}/${formatTime(audio.duration)}`;
         });
 
         audio.addEventListener('ended', () => {
