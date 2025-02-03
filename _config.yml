@@ -115,7 +115,7 @@ analytics:
 author:
   name             : "Lee Seung Jun"
   avatar           : "assets/images/profile_img.jpg"
-  bio              : "저의 사이트에 방문하신걸 환영합니다. 저는 임베디드 시스템과 AI에 관심이 많고 이를 활용해 무언가를 만드는 것을 좋아합니다."
+  bio              : "저의 사이트에 방문하신걸 환영합니다. \n\n 저는 임베디드 시스템과 AI에 관심이 많고 \n\n 이를 활용해 무언가를 만드는 것을 좋아합니다."
   location         : "Seoul"
   email            : faransansj@cau.ac.kr
   links:
