@@ -201,7 +201,11 @@
             if (!audioContext) {
                 audioContext = new (window.AudioContext || window.webkitAudioContext)();
                 analyser = audioContext.createAnalyser();
-                analyser.fftSize = 256;
+                analyser.fftSize = 2048; // 더 세밀한 주파수 분석을 위해 증가
+                analyser.minDecibels = -70;
+                analyser.maxDecibels = -30;
+                analyser.smoothingTimeConstant = 0.85;
+                
                 source = audioContext.createMediaElementSource(audio);
                 source.connect(analyser);
                 analyser.connect(audioContext.destination);
@@ -215,14 +219,28 @@
             
             analyser.getByteFrequencyData(dataArray);
             const bars = visualizer.children;
-            const step = Math.floor(dataArray.length / BARS_COUNT);
+            
+            // 로그 스케일로 주파수 범위 나누기
+            const frequencyData = new Float32Array(BARS_COUNT);
+            const binCount = analyser.frequencyBinCount;
             
             for (let i = 0; i < BARS_COUNT; i++) {
-                const value = dataArray[i * step];
-                const height = (value / 255) * 100;
-                bars[i].style.height = `${height}%`;
+                // 로그 스케일로 인덱스 계산
+                const startIndex = Math.floor(Math.pow(binCount, i / BARS_COUNT) / Math.pow(binCount, 1) * binCount);
+                const endIndex = Math.floor(Math.pow(binCount, (i + 1) / BARS_COUNT) / Math.pow(binCount, 1) * binCount);
                 
-                // Fixed color matching progress bar
+                let sum = 0;
+                for (let j = startIndex; j < endIndex; j++) {
+                    sum += dataArray[j];
+                }
+                frequencyData[i] = sum / (endIndex - startIndex);
+            }
+            
+            // 시각화
+            for (let i = 0; i < BARS_COUNT; i++) {
+                // 높이 스케일링 및 스무딩 적용
+                const height = Math.max(3, (frequencyData[i] / 255) * 100);
+                bars[i].style.height = `${height}%`;
                 bars[i].style.backgroundColor = '#67e8f9';
             }
             
