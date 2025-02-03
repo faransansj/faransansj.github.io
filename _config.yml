@@ -84,7 +84,7 @@ google:
 # SEO Related
 google_site_verification :
 bing_site_verification   :
-naver_site_verification  :
+naver_site_verification  :  
 yandex_site_verification :
 baidu_site_verification  :
 
@@ -113,10 +113,10 @@ analytics:
 
 # Site Author
 author:
-  name             : "SeungJun Lee"
+  name             : "Midori"
   avatar           : "assets/images/profile_img.jpg"
-  bio              : "저의 사이트에 방문하신걸 환영합니다. \n 저는 임베디드 시스템과 AI에 관심이 많고 \n 이를 활용해 무언가를 만드는 것을 좋아합니다."
-  location         : "Seoul, Korea (UTC +9)"
+  bio              : "저의 사이트에 방문하신걸 환영합니다. <br> 저는 임베디드 시스템과 AI에 관심이 많고 <br> 이를 활용해 무언가를 만드는 것을 좋아합니다."
+  location         : "Seoul, Korea"
   email            : faransansj@cau.ac.kr
   links:
     - label: "Email"
@@ -322,6 +322,8 @@ defaults:
       comments: true
       share: true
       related: true
+      sidebar:
+        nav: "main"
 
 defaults:
   - scope:
@@ -335,3 +337,10 @@ defaults:
       share: true
       related: true
 
+  # _pages                   
+  - scope:
+      path: "_pages"
+      type: pages
+    values:
+      layout: single
+      author_profile: true

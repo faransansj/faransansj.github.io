@@ -4,8 +4,12 @@ layout: archive
 
 {{ content }}
 
-<h3 class="archive__subtitle">{{ site.data.ui-text[site.locale].recent_posts | default: "Recent Posts" }}</h3>
 
+<div class="posts-header">
+  <img src="/assets/images/header-image.webp" alt="Posts Header" style="width: 100%; max-height: 300px; object-fit: cover; margin-bottom: 1em;">
+</div>
+
+ <h3 class="archive__subtitle">{{ site.data.ui-text[site.locale].recent_posts | default: "Recent Posts" }}</h3>
 {% if paginator %}
   {% assign posts = paginator.posts %}
 {% else %}
