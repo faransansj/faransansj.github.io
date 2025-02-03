@@ -71,7 +71,7 @@
         white-space: nowrap;
     }
     .visualizer-container {
-        width: 160px;
+        width: 180px;
         height: 24px;
         background: #f3f4f6;
         border-radius: 4px;
@@ -224,27 +224,37 @@
             const frequencyData = new Float32Array(BARS_COUNT);
             const binCount = analyser.frequencyBinCount;
             
-            // 저주파 영역을 더 세밀하게 분석
+            // 주파수 데이터 처리 개선
+            const lowFreqMultiplier = 2.0;  // 저주파 증폭
             for (let i = 0; i < BARS_COUNT; i++) {
-                // 지수 함수를 사용하여 저주파 영역에 더 많은 바를 할당
-                const startIndex = Math.floor(Math.exp(i / BARS_COUNT * Math.log(binCount)));
-                const endIndex = Math.floor(Math.exp((i + 1) / BARS_COUNT * Math.log(binCount)));
+                const startPercent = i / BARS_COUNT;
+                const endPercent = (i + 1) / BARS_COUNT;
+                
+                // 선형 인덱스 매핑
+                const startIndex = Math.floor(startPercent * binCount);
+                const endIndex = Math.floor(endPercent * binCount);
                 
                 let sum = 0;
                 let count = 0;
+                
                 for (let j = startIndex; j < endIndex; j++) {
-                    sum += dataArray[j];
+                    // 저주파 영역 증폭
+                    const multiplier = j < binCount / 4 ? lowFreqMultiplier : 1.0;
+                    sum += dataArray[j] * multiplier;
                     count++;
                 }
-                frequencyData[i] = count > 0 ? sum / count : 0;
+                
+                const value = count > 0 ? sum / count : 0;
+                frequencyData[i] = value;
             }
             
             // 시각화
             for (let i = 0; i < BARS_COUNT; i++) {
-                // 높이 스케일링 및 스무딩 적용
-                const height = Math.max(3, (frequencyData[i] / 255) * 100);
+                const value = Math.max(2, frequencyData[i]); // 최소 높이 보장
+                const height = (value / 255) * 100;
                 bars[i].style.height = `${height}%`;
                 bars[i].style.backgroundColor = '#67e8f9';
+                bars[i].style.display = 'block';  // 모든 바가 보이도록 보장
             }
             
             requestAnimationFrame(updateVisualizer);
