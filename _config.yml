@@ -115,7 +115,7 @@ analytics:
 author:
   name             : "Midori"
   avatar           : "assets/images/profile_img.jpg"
-  bio              : "저의 사이트에 방문하신걸 환영합니다. <br> 저는 임베디드 시스템과 AI에 관심이 많고 <br> 이를 활용해 무언가를 만드는 것을 좋아합니다."
+  bio              : "저의 사이트에 방문하신걸 환영합니다. <br> 임베디드 시스템과 AI를 활용해 무언가를 만드는 것을 좋아합니다."
   location         : "Seoul, Korea"
   email            : faransansj@cau.ac.kr
   links:

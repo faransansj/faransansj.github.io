@@ -1,0 +1,279 @@
+<style type="text/css">
+    .audio-player {
+        background: white;
+        border-radius: 8px;
+        padding: 12px;
+        width: 100%;
+        margin-bottom: 1em;
+    }
+    .controls {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 8px;
+    }
+    .play-btn {
+        background: #9ca3af;
+        border: none;
+        border-radius: 50%;
+        width: 24px;
+        height: 24px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.2s;
+        padding: 0;
+        flex-shrink: 0;
+    }
+    .play-btn:hover {
+        background: #6b7280;
+    }
+    .play-btn:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+    .play-icon {
+        width: 0;
+        height: 0;
+        border-style: solid;
+        border-width: 6px 0 6px 9px;
+        border-color: transparent transparent transparent white;
+        margin-left: 2px;
+    }
+    .pause-icon {
+        display: flex;
+        gap: 2px;
+    }
+    .pause-icon span {
+        width: 2.5px;
+        height: 10px;
+        background: white;
+        border-radius: 1px;
+    }
+    .time {
+        font-size: 11px;
+        color: #9ca3af;
+        margin-left: auto;
+    }
+    .progress-container {
+        width: 100%;
+        position: relative;
+    }
+    .progress-bar {
+        background: #e5e7eb;
+        height: 3px;
+        border-radius: 1.5px;
+        cursor: pointer;
+        position: relative;
+    }
+    .progress {
+        background: #67e8f9;
+        height: 100%;
+        border-radius: 1.5px;
+        width: 0%;
+        transition: width 0.1s linear;
+    }
+    .buffer {
+        background: rgba(103, 232, 249, 0.3);
+        height: 100%;
+        border-radius: 1.5px;
+        width: 0%;
+        position: absolute;
+        top: 0;
+    }
+    .title {
+        font-size: 14px;
+        color: #374151;
+        flex-grow: 1;
+    }
+    .debug-info {
+        font-size: 12px;
+        color: #6b7280;
+        margin-top: 8px;
+    }
+    .loading {
+        display: inline-block;
+        width: 12px;
+        height: 12px;
+        border: 2px solid #9ca3af;
+        border-radius: 50%;
+        border-top-color: transparent;
+        animation: spin 1s linear infinite;
+        margin-right: 8px;
+    }
+    @keyframes spin {
+        to { transform: rotate(360deg); }
+    }
+    .status {
+        display: flex;
+        align-items: center;
+        font-size: 12px;
+        color: #6b7280;
+        margin-top: 4px;
+    }
+</style>
+
+<div class="audio-player">
+    <audio id="audio" preload="metadata">
+        <source src="../../assets/audio/STUDY_WITH_MIKU-part3.mp3" type="audio/mpeg">
+        Your browser does not support the audio element.
+    </audio>
+
+    <div class="controls">
+        <button class="play-btn" id="playBtn" disabled>
+            <div class="play-icon" id="playIcon"></div>
+        </button>
+        <div class="title">STUDY WITH MIKU - Part 3</div>
+        <span class="time" id="time">0:00</span>
+    </div>
+    <div class="progress-container">
+        <div class="progress-bar" id="progressBar">
+            <div class="buffer" id="buffer"></div>
+            <div class="progress" id="progress"></div>
+        </div>
+    </div>
+    <div class="status" id="status">
+        <span class="loading" id="loading"></span>
+        <span id="statusText">Loading audio file...</span>
+    </div>
+</div>
+
+<script type="text/javascript">
+    document.addEventListener('DOMContentLoaded', function() {
+        const audio = document.getElementById('audio');
+        const playBtn = document.getElementById('playBtn');
+        const progressBar = document.getElementById('progressBar');
+        const progress = document.getElementById('progress');
+        const buffer = document.getElementById('buffer');
+        const timeDisplay = document.getElementById('time');
+        const status = document.getElementById('status');
+        const statusText = document.getElementById('statusText');
+        const loading = document.getElementById('loading');
+        let isPlaying = false;
+        let loadStartTime = Date.now();
+
+        function formatTime(seconds) {
+            const minutes = Math.floor(seconds / 60);
+            const secs = Math.floor(seconds % 60);
+            return `${minutes}:${secs.toString().padStart(2, '0')}`;
+        }
+
+        function updatePlayButton(playing) {
+            const playIcon = document.getElementById('playIcon');
+            if (playing) {
+                playIcon.className = 'pause-icon';
+                playIcon.innerHTML = '<span></span><span></span>';
+            } else {
+                playIcon.className = 'play-icon';
+                playIcon.innerHTML = '';
+            }
+        }
+
+        async function togglePlay() {
+            if (!isPlaying) {
+                try {
+                    statusText.textContent = 'Starting playback...';
+                    await audio.play();
+                    isPlaying = true;
+                    statusText.textContent = 'Playing';
+                } catch (error) {
+                    statusText.textContent = `Playback error: ${error.message}`;
+                }
+            } else {
+                audio.pause();
+                isPlaying = false;
+                statusText.textContent = 'Paused';
+            }
+            updatePlayButton(isPlaying);
+        }
+
+        playBtn.addEventListener('click', togglePlay);
+
+        progressBar.addEventListener('click', (e) => {
+            const rect = progressBar.getBoundingClientRect();
+            const percentage = (e.clientX - rect.left) / rect.width;
+            const newTime = percentage * audio.duration;
+            
+            if (isNaN(newTime)) return;
+            
+            try {
+                audio.currentTime = newTime;
+                if (isPlaying) {
+                    audio.play().catch(error => {
+                        statusText.textContent = `Seek error: ${error.message}`;
+                    });
+                }
+            } catch (error) {
+                statusText.textContent = `Seek error: ${error.message}`;
+            }
+        });
+
+        audio.addEventListener('loadstart', () => {
+            loading.style.display = 'inline-block';
+            statusText.textContent = 'Loading audio file (80MB)...';
+            loadStartTime = Date.now();
+        });
+
+        audio.addEventListener('progress', () => {
+            if (audio.buffered.length > 0) {
+                const bufferedEnd = audio.buffered.end(audio.buffered.length - 1);
+                const duration = audio.duration;
+                if (!isNaN(duration) && !isNaN(bufferedEnd)) {
+                    const bufferedPercent = (bufferedEnd / duration) * 100;
+                    buffer.style.width = `${bufferedPercent}%`;
+                    
+                    // Calculate loading speed
+                    const loadedBytes = (bufferedPercent / 100) * 80 * 1024 * 1024; // 80MB in bytes
+                    const elapsedSeconds = (Date.now() - loadStartTime) / 1000;
+                    const speedMBps = (loadedBytes / 1024 / 1024) / elapsedSeconds;
+                    
+                    statusText.textContent = `Loading: ${bufferedPercent.toFixed(1)}% (${speedMBps.toFixed(1)} MB/s)`;
+                }
+            }
+        });
+
+        audio.addEventListener('canplay', () => {
+            loading.style.display = 'none';
+            statusText.textContent = 'Ready to play';
+            playBtn.disabled = false;
+        });
+
+        audio.addEventListener('playing', () => {
+            loading.style.display = 'none';
+            statusText.textContent = 'Playing';
+        });
+
+        audio.addEventListener('waiting', () => {
+            loading.style.display = 'inline-block';
+            statusText.textContent = 'Buffering...';
+        });
+
+        audio.addEventListener('timeupdate', () => {
+            if (isNaN(audio.duration)) return;
+            const percentage = (audio.currentTime / audio.duration) * 100;
+            progress.style.width = `${percentage}%`;
+            timeDisplay.textContent = formatTime(audio.currentTime);
+        });
+
+        audio.addEventListener('ended', () => {
+            isPlaying = false;
+            updatePlayButton(false);
+            statusText.textContent = 'Ended';
+            loading.style.display = 'none';
+        });
+
+        audio.addEventListener('error', (e) => {
+            const errors = {
+                1: 'Loading process aborted',
+                2: 'Network error',
+                3: 'Audio decoding failed',
+                4: 'Source not supported'
+            };
+            const errorMessage = errors[audio.error.code] || 'Unknown error';
+            statusText.textContent = `Error: ${errorMessage}`;
+            loading.style.display = 'none';
+            console.error('Audio error:', audio.error);
+        });
+    });
+</script>
