@@ -21,7 +21,7 @@ title                    : "Midori's Archive"
 title_separator          : "-"
 subtitle                 : # site tagline that appears below site title in masthead
 name                     : "Lee Seung Jun"
-description              : "An amazing website."
+description              : "welcome to my archive"
 url                      : "https://faransansj.github.io"
 baseurl                  : # the subpath of your site, e.g. "/blog"
 repository               : https://github.com/faransansj/faransansj.github.io  # GitHub username/repo-name e.g. "mmistakes/minimal-mistakes"
@@ -115,7 +115,7 @@ analytics:
 author:
   name             : "Lee Seung Jun"
   avatar           : "assets/images/profile_img.jpg"
-  bio              : "I am an **amazing** person."
+  bio              : "저의 사이트에 방문하신걸 환영합니다. 저는 임베디드 시스템과 AI에 관심이 많고 이를 활용해 무언가를 만드는 것을 좋아합니다."
   location         : "Seoul"
   email            : faransansj@cau.ac.kr
   links:
