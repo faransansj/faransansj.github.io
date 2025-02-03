@@ -1,4 +1,4 @@
-main:
+sidebar-topics:
   - title: "Topics"
     children:
       - title: "Raspberrypi_car"
