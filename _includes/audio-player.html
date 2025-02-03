@@ -220,30 +220,34 @@
             
             analyser.getByteFrequencyData(dataArray);
             const bars = visualizer.children;
-            
-            // 주파수 데이터 처리 개선
-            const frequencyData = new Float32Array(BARS_COUNT);
             const binCount = analyser.frequencyBinCount;
             
+            // 주파수 범위를 선형적으로 나누기
+            const frequencyData = new Float32Array(BARS_COUNT);
+            const samplesPerBar = Math.floor(binCount / BARS_COUNT);
+            
+            // 각 바에 대한 주파수 데이터 수집
             for (let i = 0; i < BARS_COUNT; i++) {
-                const startIndex = Math.floor(Math.pow(binCount, i / BARS_COUNT) / Math.pow(binCount, 1) * binCount);
-                const endIndex = Math.floor(Math.pow(binCount, (i + 1) / BARS_COUNT) / Math.pow(binCount, 1) * binCount);
-                
+                const startBin = i * samplesPerBar;
+                const endBin = startBin + samplesPerBar;
                 let sum = 0;
-                let count = 0;
-                for (let j = startIndex; j < endIndex; j++) {
+                
+                // 각 구간의 주파수 평균 계산
+                for (let j = startBin; j < endBin; j++) {
                     sum += dataArray[j];
-                    count++;
                 }
                 
-                // 평균값 계산 및 정규화
-                frequencyData[i] = count > 0 ? (sum / count) : 0;
+                // 부드러운 전환을 위한 가중치 적용
+                const weightedAverage = sum / samplesPerBar;
+                frequencyData[i] = weightedAverage;
             }
             
-            // 정규화된 값을 시각화
-            const maxValue = Math.max(...frequencyData);
+            // 시각화 업데이트
             for (let i = 0; i < BARS_COUNT; i++) {
-                let heightPercentage = Math.max(8, (frequencyData[i] / 255) * 100);
+                // 최소 높이 보장 및 로그 스케일 적용
+                const heightPercentage = Math.max(8, 
+                    (Math.log10(1 + frequencyData[i]) / Math.log10(256)) * 100
+                );
                 bars[i].style.height = `${heightPercentage}%`;
             }
             
