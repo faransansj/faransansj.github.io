@@ -188,7 +188,7 @@
         let analyser;
         let dataArray;
         let source;
-        const BARS_COUNT = 32;
+        const BARS_COUNT = 28; // 이미지와 동일한 바 개수로 조정
 
         // Create visualizer bars
         for (let i = 0; i < BARS_COUNT; i++) {
@@ -224,16 +224,19 @@
             const frequencyData = new Float32Array(BARS_COUNT);
             const binCount = analyser.frequencyBinCount;
             
+            // 저주파 영역을 더 세밀하게 분석
             for (let i = 0; i < BARS_COUNT; i++) {
-                // 로그 스케일로 인덱스 계산
-                const startIndex = Math.floor(Math.pow(binCount, i / BARS_COUNT) / Math.pow(binCount, 1) * binCount);
-                const endIndex = Math.floor(Math.pow(binCount, (i + 1) / BARS_COUNT) / Math.pow(binCount, 1) * binCount);
+                // 지수 함수를 사용하여 저주파 영역에 더 많은 바를 할당
+                const startIndex = Math.floor(Math.exp(i / BARS_COUNT * Math.log(binCount)));
+                const endIndex = Math.floor(Math.exp((i + 1) / BARS_COUNT * Math.log(binCount)));
                 
                 let sum = 0;
+                let count = 0;
                 for (let j = startIndex; j < endIndex; j++) {
                     sum += dataArray[j];
+                    count++;
                 }
-                frequencyData[i] = sum / (endIndex - startIndex);
+                frequencyData[i] = count > 0 ? sum / count : 0;
             }
             
             // 시각화
