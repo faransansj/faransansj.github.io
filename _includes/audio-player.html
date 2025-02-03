@@ -75,8 +75,8 @@
         height: 24px;
         background: #f3f4f6;
         border-radius: 4px;
-        overflow: hidden;
         flex-shrink: 0;
+        padding: 2px;
     }
     #visualizer {
         width: 100%;
@@ -84,7 +84,6 @@
         display: flex;
         align-items: flex-end;
         gap: 1px;
-        padding: 2px;
     }
     .bar {
         flex-grow: 1;
@@ -223,9 +222,8 @@
                 const height = (value / 255) * 100;
                 bars[i].style.height = `${height}%`;
                 
-                // Color gradient effect
-                const hue = (height * 2) + 180;
-                bars[i].style.backgroundColor = `hsl(${hue}, 80%, 60%)`;
+                // Fixed color matching progress bar
+                bars[i].style.backgroundColor = '#67e8f9';
             }
             
             requestAnimationFrame(updateVisualizer);
