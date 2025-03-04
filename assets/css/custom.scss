@@ -1,0 +1,50 @@
+.code-block-wrapper {
+    position: relative;
+    margin: 20px 0;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  }
+  
+  .code-block-header {
+    display: flex;
+    justify-content: space-between; /* 양쪽으로 나란히 배치 */
+    align-items: center;
+    padding: 8px 15px;
+    background-color: #2d2d2d;
+    color: #fff;
+    font-family: monospace;
+    font-size: 14px;
+  }
+  
+  .language-label {
+    font-weight: bold;
+    /* margin-left: 10px; 기존 여백 제거 */
+    margin-left: 0;
+  }
+  
+  .copy-button {
+    background-color: transparent;
+    color: white;
+    border: none;
+    padding: 4px 8px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: color 0.3s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .copy-button:hover {
+    color: #ccc;
+  }
+  
+  .copy-button.copied {
+    color: #4CAF50;
+  }
+  
+  div.highlighter-rouge {
+    position: relative;
+  }
+  
