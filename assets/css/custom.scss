@@ -1,50 +1,53 @@
+
+/* 코드 블록 스타일 */
 .code-block-wrapper {
-    position: relative;
-    margin: 20px 0;
-    border-radius: 8px;
-    overflow: hidden;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-  }
-  
-  .code-block-header {
-    display: flex;
-    justify-content: space-between; /* 양쪽으로 나란히 배치 */
-    align-items: center;
-    padding: 8px 15px;
-    background-color: #2d2d2d;
-    color: #fff;
-    font-family: monospace;
-    font-size: 14px;
-  }
-  
-  .language-label {
-    font-weight: bold;
-    /* margin-left: 10px; 기존 여백 제거 */
-    margin-left: 0;
-  }
-  
-  .copy-button {
-    background-color: transparent;
-    color: white;
-    border: none;
-    padding: 4px 8px;
-    font-size: 16px;
-    cursor: pointer;
-    transition: color 0.3s;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-  
-  .copy-button:hover {
-    color: #ccc;
-  }
-  
-  .copy-button.copied {
-    color: #4CAF50;
-  }
-  
-  div.highlighter-rouge {
-    position: relative;
-  }
-  
+  position: relative;
+  margin: 20px 0;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.code-block-header {
+  display: flex;
+  justify-content: space-between; 
+  align-items: center;
+  padding: 8px 15px;
+  background-color: #2d2d2d;
+  color: #fff;
+  font-family: monospace;
+  font-size: 14px;
+}
+
+.language-label {
+  font-weight: bold;
+  margin-left: 10px; 
+}
+
+.copy-button {
+  background-color: transparent;
+  color: white;
+  border: none;
+  padding: 4px 8px;
+  font-size: 16px;                  /* 아이콘 크기 */
+  cursor: pointer;
+  transition: color 0.3s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.copy-button:hover {
+  color: #ccc;                  /* 호버 시 색상 변경 */
+}
+
+.copy-button.copied {
+  color: #4CAF50;               /* 복사 성공 시 색상 */
+}
+
+/* 기존 코드 블록을 감싸는 스타일 */
+div.highlighter-rouge {
+  position: relative;
+}
+
+/* 테마 스타일 - 기존 코드 그대로 유지 */
