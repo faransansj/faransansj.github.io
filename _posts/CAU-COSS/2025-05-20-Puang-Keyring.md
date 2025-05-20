@@ -8,7 +8,9 @@ toc_sticky: true
 
 ---
 ## 준비물
+```
 OLED, 아두이노 나노, USB 케이블(아두이노 포트 맞게), 건전지(CR2032), 건전지 홀더, 스위치  
+```
 <img src="/assets/images/post/CAU-COSS/KakaoTalk_20250520_082928200_21.jpg" alt="준비물" style="max-width: 50%; height: auto;">
 
 ### 1. 회로 연결하기
@@ -18,12 +20,13 @@ OLED, 아두이노 나노, USB 케이블(아두이노 포트 맞게), 건전지(
   <img src="/assets/images/post/CAU-COSS/KakaoTalk_20250520_082928200_19.jpg" alt="회로연결2" style="max-width: 48%;">
 </div>
 핀을 잘 확인하고 저로 짝이 잘 맞는지 확인하세요. 특히 5V, GND를 반대로 꽂진 않았는지 확인하세요.  
+```
 OLED    - Arduino Nano  
 VCC     - 5V  
 GND     - GND  
 SCL     - A5  
 SDA     - A4  
-
+```
 ---
 
 ### 2. 프로그래밍 
