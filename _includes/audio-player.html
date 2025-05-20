@@ -1,0 +1,394 @@
+<style type="text/css">
+    .audio-player {
+        background: white;
+        border-radius: 8px;
+        padding: 12px;
+        width: 100%;
+        margin-bottom: 1em;
+    }
+    .controls {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 8px;
+    }
+    .play-btn {
+        background: #9ca3af;
+        border: none;
+        border-radius: 50%;
+        width: 24px;
+        height: 24px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.2s;
+        padding: 0;
+        flex-shrink: 0;
+    }
+    .play-btn:hover {
+        background: #6b7280;
+    }
+    .play-btn:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+    .play-icon {
+        width: 0;
+        height: 0;
+        border-style: solid;
+        border-width: 6px 0 6px 9px;
+        border-color: transparent transparent transparent white;
+        margin-left: 2px;
+    }
+    .pause-icon {
+        display: flex;
+        gap: 2px;
+    }
+    .pause-icon span {
+        width: 2.5px;
+        height: 10px;
+        background: white;
+        border-radius: 1px;
+    }
+    .title-area {
+        display: flex;
+        align-items: center;
+        flex-grow: 1;
+        gap: 12px;
+    }
+    .title {
+        font-size: 14px;
+        color: #374151;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    .time {
+        font-size: 11px;
+        color: #9ca3af;
+        margin-left: auto;
+        white-space: nowrap;
+    }
+    .visualizer-container {
+        width: 160px;
+        height: 24px;
+        background: #f3f4f6;
+        border-radius: 4px;
+        flex-shrink: 0;
+        padding: 2px;
+    }
+    #visualizer {
+        width: 100%;
+        height: 100%;
+        display: flex;
+        align-items: flex-end;
+        gap: 1px;
+    }
+    .bar {
+        flex-grow: 1;
+        background: #67e8f9;
+        transition: height 0.05s ease;
+        min-height: 2px;
+    }
+    .progress-container {
+        width: 100%;
+        position: relative;
+        margin-bottom: 8px;
+    }
+    .progress-bar {
+        background: #e5e7eb;
+        height: 3px;
+        border-radius: 1.5px;
+        cursor: pointer;
+        position: relative;
+    }
+    .progress {
+        background: #67e8f9;
+        height: 100%;
+        border-radius: 1.5px;
+        width: 0%;
+        transition: width 0.1s linear;
+    }
+    .buffer {
+        background: rgba(103, 232, 249, 0.3);
+        height: 100%;
+        border-radius: 1.5px;
+        width: 0%;
+        position: absolute;
+        top: 0;
+    }
+    .loading {
+        display: inline-block;
+        width: 12px;
+        height: 12px;
+        border: 2px solid #9ca3af;
+        border-radius: 50%;
+        border-top-color: transparent;
+        animation: spin 1s linear infinite;
+        margin-right: 8px;
+    }
+    @keyframes spin {
+        to { transform: rotate(360deg); }
+    }
+    .status {
+        display: flex;
+        align-items: center;
+        font-size: 12px;
+        color: #6b7280;
+    }
+</style>
+
+<div class="audio-player">
+    <audio id="audio" preload="metadata">
+        <source src="../../assets/audio/STUDY_WITH_MIKU-part3.mp3" type="audio/mpeg">
+        Your browser does not support the audio element.
+    </audio>
+
+    <div class="controls">
+        <button class="play-btn" id="playBtn" disabled>
+            <div class="play-icon" id="playIcon"></div>
+        </button>
+        <div class="title-area">
+            <div class="title">STUDY WITH MIKU - Part 3</div>
+            <div class="visualizer-container">
+                <div id="visualizer"></div>
+            </div>
+        </div>
+        <span class="time" id="time">0:00/0:00</span>
+    </div>
+    
+    <div class="progress-container">
+        <div class="progress-bar" id="progressBar">
+            <div class="buffer" id="buffer"></div>
+            <div class="progress" id="progress"></div>
+        </div>
+    </div>
+    <div class="status" id="status">
+        <span class="loading" id="loading"></span>
+        <span id="statusText">Loading audio file...</span>
+    </div>
+</div>
+
+<script type="text/javascript">
+    document.addEventListener('DOMContentLoaded', function() {
+        const audio = document.getElementById('audio');
+        const playBtn = document.getElementById('playBtn');
+        const progressBar = document.getElementById('progressBar');
+        const progress = document.getElementById('progress');
+        const buffer = document.getElementById('buffer');
+        const timeDisplay = document.getElementById('time');
+        const status = document.getElementById('status');
+        const statusText = document.getElementById('statusText');
+        const loading = document.getElementById('loading');
+        const visualizer = document.getElementById('visualizer');
+        
+        let isPlaying = false;
+        let loadStartTime = Date.now();
+        let audioContext;
+        let analyser;
+        let dataArray;
+        let source;
+        const BARS_COUNT = 20;
+
+        // Create visualizer bars
+        for (let i = 0; i < BARS_COUNT; i++) {
+            const bar = document.createElement('div');
+            bar.className = 'bar';
+            visualizer.appendChild(bar);
+        }
+
+        function initAudioContext() {
+            if (!audioContext) {
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                analyser = audioContext.createAnalyser();
+                analyser.fftSize = 2048;
+                analyser.minDecibels = -90;
+                analyser.maxDecibels = -30;
+                analyser.smoothingTimeConstant = 0.85;
+                
+                source = audioContext.createMediaElementSource(audio);
+                source.connect(analyser);
+                analyser.connect(audioContext.destination);
+                
+                dataArray = new Uint8Array(analyser.frequencyBinCount);
+            }
+        }
+
+        function updateVisualizer() {
+            if (!analyser || !isPlaying) return;
+            
+            analyser.getByteFrequencyData(dataArray);
+            const bars = visualizer.children;
+            const binCount = analyser.frequencyBinCount;
+            
+            // 주파수 범위를 선형적으로 나누기
+            const frequencyData = new Float32Array(BARS_COUNT);
+            const samplesPerBar = Math.floor(binCount / BARS_COUNT);
+            
+            // 각 바에 대한 주파수 데이터 수집
+            for (let i = 0; i < BARS_COUNT; i++) {
+                const startBin = i * samplesPerBar;
+                const endBin = startBin + samplesPerBar;
+                let sum = 0;
+                
+                // 각 구간의 주파수 평균 계산
+                for (let j = startBin; j < endBin; j++) {
+                    sum += dataArray[j];
+                }
+                
+                // 부드러운 전환을 위한 가중치 적용
+                const weightedAverage = sum / samplesPerBar;
+                frequencyData[i] = weightedAverage;
+            }
+            
+            // 시각화 업데이트
+            for (let i = 0; i < BARS_COUNT; i++) {
+                // 최소 높이 보장 및 로그 스케일 적용
+                const heightPercentage = Math.max(8, 
+                    (Math.log10(1 + frequencyData[i]) / Math.log10(256)) * 100
+                );
+                bars[i].style.height = `${heightPercentage}%`;
+            }
+            
+            requestAnimationFrame(updateVisualizer);
+        }
+
+        function formatTime(seconds) {
+            if (isNaN(seconds)) return "0:00";
+            const minutes = Math.floor(seconds / 60);
+            const secs = Math.floor(seconds % 60);
+            return `${minutes}:${secs.toString().padStart(2, '0')}`;
+        }
+
+        function updatePlayButton(playing) {
+            const playIcon = document.getElementById('playIcon');
+            if (playing) {
+                playIcon.className = 'pause-icon';
+                playIcon.innerHTML = '<span></span><span></span>';
+            } else {
+                playIcon.className = 'play-icon';
+                playIcon.innerHTML = '';
+            }
+        }
+
+        async function togglePlay() {
+            try {
+                if (!audioContext) {
+                    await initAudioContext();
+                }
+                
+                if (!isPlaying) {
+                    statusText.textContent = 'Starting playback...';
+                    await audio.play();
+                    isPlaying = true;
+                    statusText.textContent = 'Playing';
+                    updateVisualizer();
+                } else {
+                    audio.pause();
+                    isPlaying = false;
+                    statusText.textContent = 'Paused';
+                }
+                updatePlayButton(isPlaying);
+            } catch (error) {
+                statusText.textContent = `Playback error: ${error.message}`;
+                console.error('Playback error:', error);
+            }
+        }
+
+        playBtn.addEventListener('click', togglePlay);
+
+        progressBar.addEventListener('click', (e) => {
+            const rect = progressBar.getBoundingClientRect();
+            const percentage = (e.clientX - rect.left) / rect.width;
+            const newTime = percentage * audio.duration;
+            
+            if (isNaN(newTime)) return;
+            
+            try {
+                audio.currentTime = newTime;
+                if (isPlaying) {
+                    audio.play().catch(error => {
+                        statusText.textContent = `Seek error: ${error.message}`;
+                    });
+                }
+            } catch (error) {
+                statusText.textContent = `Seek error: ${error.message}`;
+            }
+        });
+
+        audio.addEventListener('loadstart', () => {
+            loading.style.display = 'inline-block';
+            statusText.textContent = 'Loading audio file...';
+            loadStartTime = Date.now();
+        });
+
+        audio.addEventListener('progress', () => {
+            if (audio.buffered.length > 0) {
+                const bufferedEnd = audio.buffered.end(audio.buffered.length - 1);
+                const duration = audio.duration;
+                if (!isNaN(duration) && !isNaN(bufferedEnd)) {
+                    const bufferedPercent = (bufferedEnd / duration) * 100;
+                    buffer.style.width = `${bufferedPercent}%`;
+                    
+                    const loadedBytes = (bufferedPercent / 100) * 80 * 1024 * 1024;
+                    const elapsedSeconds = (Date.now() - loadStartTime) / 1000;
+                    const speedMBps = (loadedBytes / 1024 / 1024) / elapsedSeconds;
+                    
+                    statusText.textContent = `Loading: ${bufferedPercent.toFixed(1)}% (${speedMBps.toFixed(1)} MB/s)`;
+                }
+            }
+        });
+
+        audio.addEventListener('canplay', () => {
+            loading.style.display = 'none';
+            statusText.textContent = 'Ready to play';
+            playBtn.disabled = false;
+            timeDisplay.textContent = `0:00/${formatTime(audio.duration)}`;
+        });
+
+        audio.addEventListener('playing', () => {
+            loading.style.display = 'none';
+            statusText.textContent = 'Playing';
+        });
+
+        audio.addEventListener('waiting', () => {
+            loading.style.display = 'inline-block';
+            statusText.textContent = 'Buffering...';
+        });
+
+        audio.addEventListener('timeupdate', () => {
+            if (isNaN(audio.duration)) return;
+            const percentage = (audio.currentTime / audio.duration) * 100;
+            progress.style.width = `${percentage}%`;
+            timeDisplay.textContent = `${formatTime(audio.currentTime)}/${formatTime(audio.duration)}`;
+        });
+
+        audio.addEventListener('ended', () => {
+            isPlaying = false;
+            updatePlayButton(false);
+            statusText.textContent = 'Ended';
+            loading.style.display = 'none';
+        });
+
+        audio.addEventListener('error', (e) => {
+            const errors = {
+                1: 'Loading process aborted',
+                2: 'Network error',
+                3: 'Audio decoding failed',
+                4: 'Source not supported'
+            };
+            const errorMessage = errors[audio.error.code] || 'Unknown error';
+            statusText.textContent = `Error: ${errorMessage}`;
+            loading.style.display = 'none';
+            console.error('Audio error:', audio.error);
+        });
+
+        document.addEventListener('keydown', (e) => {
+            if (e.code === 'Space' && !e.target.matches('input, textarea')) {
+                e.preventDefault();
+                togglePlay();
+            }
+        });
+    });
+</script>
