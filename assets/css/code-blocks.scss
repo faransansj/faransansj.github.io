@@ -1,0 +1,332 @@
+---
+---
+
+/* Enhanced Code Block Styles */
+:root {
+  --code-bg: #1a1a1a;
+  --code-header-bg: #2d2d2d;
+  --code-border: #404040;
+  --code-text: #e6e6e6;
+  --code-accent: #4a9eff;
+  --copy-hover: #ffffff;
+  --copy-success: #4caf50;
+  --border-radius: 8px;
+}
+
+.code-block-enhanced {
+  position: relative;
+  margin: 1.5em 0;
+  border-radius: var(--border-radius);
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  background: var(--code-bg);
+  border: 1px solid var(--code-border);
+}
+
+.code-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem 0.875rem;
+  background: var(--code-header-bg);
+  border-bottom: 1px solid var(--code-border);
+  font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', monospace;
+  font-size: 0.8rem;
+  min-height: 2.25rem;
+}
+
+.language-info {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--code-text);
+  font-weight: 600;
+}
+
+.language-icon {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+}
+
+.language-label {
+  text-transform: capitalize;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.025em;
+}
+
+.copy-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  background: transparent;
+  border: 1px solid var(--code-border);
+  border-radius: 4px;
+  color: var(--code-text);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 12px;
+}
+
+.copy-button:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: var(--code-accent);
+  color: var(--copy-hover);
+  transform: translateY(-1px);
+}
+
+.copy-button.copied {
+  background: var(--copy-success);
+  border-color: var(--copy-success);
+  color: white;
+}
+
+.copy-button svg {
+  width: 14px;
+  height: 14px;
+}
+
+/* Enhanced code content styling */
+.code-block-enhanced .highlight,
+.code-block-enhanced pre.highlight {
+  margin: 0;
+  background: var(--code-bg) !important;
+  border-radius: 0;
+  font-size: 0.875rem;
+  line-height: 1.6;
+  overflow-x: auto;
+}
+
+.code-block-enhanced .highlight pre,
+.code-block-enhanced pre.highlight {
+  padding: 1.25rem;
+  margin: 0;
+  background: transparent !important;
+  color: var(--code-text);
+}
+
+/* Custom scrollbar for code blocks */
+.code-block-enhanced .highlight::-webkit-scrollbar,
+.code-block-enhanced pre::-webkit-scrollbar {
+  height: 8px;
+}
+
+.code-block-enhanced .highlight::-webkit-scrollbar-track,
+.code-block-enhanced pre::-webkit-scrollbar-track {
+  background: var(--code-bg);
+}
+
+.code-block-enhanced .highlight::-webkit-scrollbar-thumb,
+.code-block-enhanced pre::-webkit-scrollbar-thumb {
+  background: var(--code-border);
+  border-radius: 4px;
+}
+
+.code-block-enhanced .highlight::-webkit-scrollbar-thumb:hover,
+.code-block-enhanced pre::-webkit-scrollbar-thumb:hover {
+  background: var(--code-accent);
+}
+
+/* Language-specific styling enhancements - Dark theme (default) */
+.language-python .language-icon { color: #4b8bbe; }
+.language-javascript .language-icon { color: #f0db4f; }
+.language-typescript .language-icon { color: #3178c6; }
+.language-java .language-icon { color: #f89820; }
+.language-cpp .language-icon, .language-c .language-icon { color: #659ad2; }
+.language-html .language-icon { color: #e34c26; }
+.language-css .language-icon { color: #1572b6; }
+.language-scss .language-icon { color: #cf649a; }
+.language-shell .language-icon, .language-bash .language-icon { color: #4eaa25; }
+.language-powershell .language-icon { color: #5391fe; }
+.language-json .language-icon { color: #cbcb41; }
+.language-yaml .language-icon, .language-yml .language-icon { color: #cb171e; }
+.language-markdown .language-icon { color: #4d79a4; }
+.language-go .language-icon { color: #00add8; }
+.language-rust .language-icon { color: #dea584; }
+.language-php .language-icon { color: #8993be; }
+.language-ruby .language-icon { color: #cc342d; }
+.language-swift .language-icon { color: #fa7343; }
+.language-kotlin .language-icon { color: #a97bff; }
+
+/* Toast notification for copy feedback */
+.copy-toast {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  background: var(--copy-success);
+  color: white;
+  padding: 0.75rem 1rem;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  z-index: 1000;
+  opacity: 0;
+  transform: translateY(-10px);
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.copy-toast.show {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Dark/Light theme support */
+@media (prefers-color-scheme: light) {
+  :root {
+    --code-bg: #f8f9fa;
+    --code-header-bg: #e9ecef;
+    --code-border: #dee2e6;
+    --code-text: #212529;
+    --code-accent: #0066cc;
+  }
+  
+  .copy-button:hover {
+    background: rgba(0, 0, 0, 0.05);
+  }
+  
+  /* Enhanced syntax highlighting for light theme */
+  .code-block-enhanced .highlight,
+  .code-block-enhanced pre.highlight {
+    /* Keywords (def, class, import, function, var, const, etc.) */
+    .k, .kc, .kd, .kn, .kp, .kr, .kt { color: #0969da; font-weight: 600; }
+    
+    /* Built-in keywords (self, this, True, False, None, null, undefined) */
+    .bp { color: #cf222e; font-weight: 600; }
+    
+    /* Function and method names */
+    .nf, .fm { color: #8250df; font-weight: 500; }
+    
+    /* Class names and types */
+    .nc, .nt { color: #953800; font-weight: 600; }
+    
+    /* Variable names and identifiers */
+    .n, .na, .nb { color: #24292f; }
+    
+    /* Strings (all types) */
+    .s, .s1, .s2, .sb, .sc, .sd, .se, .sh, .si, .sx, .sr { color: #0a3069; }
+    
+    /* Numbers (integers, floats, hex, etc.) */
+    .m, .mb, .mf, .mh, .mi, .mo { color: #0550ae; }
+    
+    /* Comments (single-line, multi-line, docstrings) */
+    .c, .c1, .cm, .cp, .cpf, .cs { color: #6e7781; font-style: italic; }
+    
+    /* Operators (+, -, *, /, =, ==, etc.) */
+    .o, .ow { color: #cf222e; }
+    
+    /* Punctuation (brackets, parentheses, semicolons) */
+    .p { color: #24292f; }
+    
+    /* Decorators and annotations (@property, @staticmethod) */
+    .nd { color: #8250df; font-weight: 500; }
+    
+    /* Generic types and generics */
+    .g, .gd, .ge, .gr, .gh, .gi, .go, .gp, .gs, .gu, .gt { color: #24292f; }
+    
+    /* HTML/XML specific */
+    .nn { color: #953800; } /* XML namespaces */
+    .ne { color: #cf222e; } /* Named entities */
+    
+    /* CSS specific */
+    .nv { color: #0550ae; } /* CSS variables */
+    .nd { color: #8250df; } /* CSS pseudo-classes */
+    
+    /* JavaScript specific */
+    .nx { color: #24292f; } /* JavaScript identifiers */
+    .nl { color: #953800; } /* Labels */
+    
+    /* Shell/Bash specific */
+    .nv { color: #0550ae; } /* Environment variables */
+    .w { color: #24292f; } /* Whitespace */
+    
+    /* SQL specific */
+    .kn { color: #0969da; font-weight: 600; } /* SQL keywords */
+    
+    /* Error highlighting */
+    .err { color: #a40e26; background-color: #ffebe9; }
+    
+    /* Generic highlighting fallbacks */
+    .x { color: #24292f; } /* Other tokens */
+    .il { color: #0550ae; } /* Integer literals */
+  }
+  
+  /* Language-specific styling enhancements - Light theme */
+  .language-python .language-icon { color: #2c5282; }
+  .language-javascript .language-icon { color: #b7950b; }
+  .language-typescript .language-icon { color: #2563eb; }
+  .language-java .language-icon { color: #c05621; }
+  .language-cpp .language-icon, .language-c .language-icon { color: #1e40af; }
+  .language-html .language-icon { color: #dc2626; }
+  .language-css .language-icon { color: #0ea5e9; }
+  .language-scss .language-icon { color: #be185d; }
+  .language-shell .language-icon, .language-bash .language-icon { color: #16a34a; }
+  .language-powershell .language-icon { color: #2563eb; }
+  .language-json .language-icon { color: #a16207; }
+  .language-yaml .language-icon, .language-yml .language-icon { color: #dc2626; }
+  .language-markdown .language-icon { color: #1e40af; }
+  .language-go .language-icon { color: #0891b2; }
+  .language-rust .language-icon { color: #c2410c; }
+  .language-php .language-icon { color: #5b21b6; }
+  .language-ruby .language-icon { color: #dc2626; }
+  .language-swift .language-icon { color: #ea580c; }
+  .language-kotlin .language-icon { color: #7c3aed; }
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .code-header {
+    padding: 0.4rem 0.625rem;
+    font-size: 0.75rem;
+    min-height: 2rem;
+  }
+  
+  .language-icon {
+    width: 14px;
+    height: 14px;
+  }
+  
+  .language-label {
+    font-size: 0.7rem;
+  }
+  
+  .copy-button {
+    width: 26px;
+    height: 26px;
+  }
+  
+  .copy-button svg {
+    width: 12px;
+    height: 12px;
+  }
+  
+  .code-block-enhanced .highlight pre,
+  .code-block-enhanced pre.highlight {
+    padding: 1rem;
+    font-size: 0.8rem;
+  }
+}
+
+/* Accessibility improvements */
+.copy-button:focus {
+  outline: 2px solid var(--code-accent);
+  outline-offset: 2px;
+}
+
+.copy-button:focus:not(:focus-visible) {
+  outline: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .copy-button,
+  .copy-toast {
+    transition: none;
+  }
+  
+  .copy-button:hover {
+    transform: none;
+  }
+}

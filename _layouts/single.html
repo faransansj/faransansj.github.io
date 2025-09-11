@@ -29,13 +29,34 @@ layout: default
 
     <div class="page__inner-wrap">
       {% unless page.header.overlay_color or page.header.overlay_image %}
-        <header>
+        <header class="page__header">
           {% if page.title -%}
-          <h1 id="page-title" class="page__title" itemprop="headline">
-            <a href="{{ page.url | absolute_url }}" itemprop="url">{{ page.title | markdownify | remove: "<p>" | remove: "</p>" }}</a>
-          </h1>
+          <div class="page__title-container">
+            <div class="page__title-row">
+              <h1 id="page-title" class="page__title" itemprop="headline">
+                <a href="{{ page.url | absolute_url }}" itemprop="url">{{ page.title | markdownify | remove: "<p>" | remove: "</p>" }}</a>
+              </h1>
+              <div class="page__title-category">
+                {% if page.categories[0] %}
+                  {% assign categories_sorted = page.categories | sort_natural %}
+                  {% for category_word in categories_sorted %}
+                    <a href="/categories/{{ category_word | slugify }}/" class="page__category-item">{{ category_word }}</a>{% unless forloop.last %}<span class="category-sep">/</span>{% endunless %}
+                  {% endfor %}
+                {% endif %}
+              </div>
+            </div>
+            <div class="page__title-meta">
+              {% include page__meta.html %}
+              {% if page.tags[0] %}
+                <div class="page__tags">
+                  {% for tag in page.tags %}
+                    <span class="page__tag-item">#{{ tag }}</span>
+                  {% endfor %}
+                </div>
+              {% endif %}
+            </div>
+          </div>
           {%- endif %}
-          {% include page__meta.html %}
         </header>
       {% endunless %}
 
@@ -52,12 +73,8 @@ layout: default
         {% if page.link %}<div><a href="{{ page.link }}" class="btn btn--primary">{{ site.data.ui-text[site.locale].ext_link_label | default: "Direct Link" }}</a></div>{% endif %}
       </section>
 
-      <footer class="page__meta">
-        {% if site.data.ui-text[site.locale].meta_label %}
-          <h4 class="page__meta-title">{{ site.data.ui-text[site.locale].meta_label }}</h4>
-        {% endif %}
-        {% include page__taxonomy.html %}
-        {% include page__date.html %}
+      <footer class="page__footer">
+        <!-- Meta information moved to title area -->
       </footer>
 
       {% if page.share %}{% include social-share.html %}{% endif %}
