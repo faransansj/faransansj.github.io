@@ -189,7 +189,13 @@
         let analyser;
         let dataArray;
         let source;
-        const BARS_COUNT = 20;
+        let visualizerAnimationId;
+        let lastVisualizationTime = 0;
+        let previousBarHeights = [];
+        const BARS_COUNT = 24;
+        const VISUALIZATION_FPS = 60;
+        const FRAME_INTERVAL = 1000 / VISUALIZATION_FPS;
+        const SMOOTHING_FACTOR = 0.7;
 
         // Create visualizer bars
         for (let i = 0; i < BARS_COUNT; i++) {
@@ -202,56 +208,114 @@
             if (!audioContext) {
                 audioContext = new (window.AudioContext || window.webkitAudioContext)();
                 analyser = audioContext.createAnalyser();
-                analyser.fftSize = 2048;
-                analyser.minDecibels = -90;
-                analyser.maxDecibels = -30;
-                analyser.smoothingTimeConstant = 0.85;
+                // 향상된 FFT 설정
+                analyser.fftSize = 4096; // 더 높은 해상도
+                analyser.minDecibels = -100;
+                analyser.maxDecibels = -20;
+                analyser.smoothingTimeConstant = 0.75; // 더 반응적인 설정
                 
                 source = audioContext.createMediaElementSource(audio);
                 source.connect(analyser);
                 analyser.connect(audioContext.destination);
                 
                 dataArray = new Uint8Array(analyser.frequencyBinCount);
+                
+                // 이전 바 높이 초기화
+                previousBarHeights = new Array(BARS_COUNT).fill(8);
+                
+                // Resume context if suspended (Chrome autoplay policy)
+                if (audioContext.state === 'suspended') {
+                    audioContext.resume();
+                }
             }
         }
 
-        function updateVisualizer() {
-            if (!analyser || !isPlaying) return;
+        function updateVisualizer(timestamp) {
+            if (!analyser || !isPlaying) {
+                return;
+            }
+            
+            // 프레임 속도 제한으로 성능 최적화
+            if (timestamp - lastVisualizationTime < FRAME_INTERVAL) {
+                visualizerAnimationId = requestAnimationFrame(updateVisualizer);
+                return;
+            }
+            lastVisualizationTime = timestamp;
             
             analyser.getByteFrequencyData(dataArray);
             const bars = visualizer.children;
             const binCount = analyser.frequencyBinCount;
             
-            // 주파수 범위를 선형적으로 나누기
+            // 로그 스케일 주파수 분포 (음악적 표현력 향상)
             const frequencyData = new Float32Array(BARS_COUNT);
-            const samplesPerBar = Math.floor(binCount / BARS_COUNT);
+            const nyquist = audioContext.sampleRate / 2;
+            const logBase = Math.pow(nyquist / 20, 1 / BARS_COUNT); // 20Hz to Nyquist
             
-            // 각 바에 대한 주파수 데이터 수집
+            // 로그 분포로 주파수 범위 계산
             for (let i = 0; i < BARS_COUNT; i++) {
-                const startBin = i * samplesPerBar;
-                const endBin = startBin + samplesPerBar;
-                let sum = 0;
+                const freqStart = 20 * Math.pow(logBase, i);
+                const freqEnd = 20 * Math.pow(logBase, i + 1);
                 
-                // 각 구간의 주파수 평균 계산
-                for (let j = startBin; j < endBin; j++) {
-                    sum += dataArray[j];
+                const binStart = Math.floor(freqStart * binCount / nyquist);
+                const binEnd = Math.floor(freqEnd * binCount / nyquist);
+                
+                let sum = 0;
+                let count = 0;
+                
+                // 주파수 가중치를 적용한 평균 계산
+                for (let j = binStart; j <= binEnd && j < binCount; j++) {
+                    // 고주파수에 약간 더 가중치 부여 (시각적 균형)
+                    const weight = 1 + (j / binCount) * 0.3;
+                    sum += dataArray[j] * weight;
+                    count += weight;
                 }
                 
-                // 부드러운 전환을 위한 가중치 적용
-                const weightedAverage = sum / samplesPerBar;
-                frequencyData[i] = weightedAverage;
+                frequencyData[i] = count > 0 ? sum / count : 0;
             }
             
-            // 시각화 업데이트
+            // 향상된 시각화 업데이트
             for (let i = 0; i < BARS_COUNT; i++) {
-                // 최소 높이 보장 및 로그 스케일 적용
-                const heightPercentage = Math.max(8, 
-                    (Math.log10(1 + frequencyData[i]) / Math.log10(256)) * 100
-                );
-                bars[i].style.height = `${heightPercentage}%`;
+                const currentBar = bars[i];
+                
+                // 향상된 스케일링 (음향 인지 고려)
+                const rawValue = frequencyData[i];
+                const normalizedValue = rawValue / 255;
+                
+                // 인간 청각 감도 곡선 적용
+                const perceptualValue = Math.pow(normalizedValue, 0.7);
+                
+                // 최소 높이와 함께 백분율 변환
+                let heightPercentage = Math.max(4, perceptualValue * 100);
+                
+                // 조용한 구간에서 미묘한 랜덤화 (더 자연스러운 느낌)
+                if (heightPercentage < 15) {
+                    heightPercentage += Math.random() * 2;
+                }
+                
+                // 부드러운 전환 적용
+                const smoothedHeight = previousBarHeights[i] + 
+                    (heightPercentage - previousBarHeights[i]) * SMOOTHING_FACTOR;
+                
+                previousBarHeights[i] = smoothedHeight;
+                currentBar.style.height = `${smoothedHeight}%`;
+                
+                // 동적 색상 매핑
+                const intensity = Math.min(1, smoothedHeight / 80);
+                const hue = 180 + intensity * 60; // 시안에서 노랑으로 전환
+                const saturation = 70 + intensity * 30;
+                const lightness = 60 + intensity * 20;
+                
+                currentBar.style.background = `hsl(${hue}, ${saturation}%, ${lightness}%)`;
             }
             
-            requestAnimationFrame(updateVisualizer);
+            visualizerAnimationId = requestAnimationFrame(updateVisualizer);
+        }
+        
+        function stopVisualizer() {
+            if (visualizerAnimationId) {
+                cancelAnimationFrame(visualizerAnimationId);
+                visualizerAnimationId = null;
+            }
         }
 
         function formatTime(seconds) {
@@ -283,11 +347,12 @@
                     await audio.play();
                     isPlaying = true;
                     statusText.textContent = 'Playing';
-                    updateVisualizer();
+                    visualizerAnimationId = requestAnimationFrame(updateVisualizer);
                 } else {
                     audio.pause();
                     isPlaying = false;
                     statusText.textContent = 'Paused';
+                    stopVisualizer();
                 }
                 updatePlayButton(isPlaying);
             } catch (error) {
@@ -369,6 +434,7 @@
             updatePlayButton(false);
             statusText.textContent = 'Ended';
             loading.style.display = 'none';
+            stopVisualizer();
         });
 
         audio.addEventListener('error', (e) => {
@@ -384,6 +450,44 @@
             console.error('Audio error:', audio.error);
         });
 
+        // 페이지 가시성 변경 처리 (성능 최적화)
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden) {
+                // 페이지가 숨겨지면 시각화 중단
+                if (visualizerAnimationId) {
+                    stopVisualizer();
+                }
+            } else {
+                // 페이지가 다시 보이면 시각화 재시작
+                if (isPlaying && !visualizerAnimationId) {
+                    visualizerAnimationId = requestAnimationFrame(updateVisualizer);
+                }
+            }
+        });
+        
+        // 배터리 절약 모드 감지 (모바일 최적화)
+        if ('getBattery' in navigator) {
+            navigator.getBattery().then(battery => {
+                function checkBatteryOptimization() {
+                    if (battery.charging === false && battery.level < 0.2) {
+                        // 배터리가 부족하면 시각화 중단
+                        stopVisualizer();
+                        statusText.textContent = 'Visualization paused to save battery';
+                    }
+                }
+                battery.addEventListener('chargingchange', checkBatteryOptimization);
+                battery.addEventListener('levelchange', checkBatteryOptimization);
+                checkBatteryOptimization();
+            });
+        }
+        
+        // Reduced motion 설정 감지 (접근성)
+        const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        if (prefersReducedMotion) {
+            // 모션 감소 설정이 활성화되면 시각화 비활성화
+            stopVisualizer();
+        }
+        
         document.addEventListener('keydown', (e) => {
             if (e.code === 'Space' && !e.target.matches('input, textarea')) {
                 e.preventDefault();
