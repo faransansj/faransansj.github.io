@@ -1,0 +1,304 @@
+/**
+ * Mini Audio Player Styles
+ * Persistent audio player positioned in bottom-left corner
+ */
+
+.mini-player {
+    position: fixed;
+    bottom: 20px;
+    left: 20px;
+    width: 200px; /* Match narrow sidebar width */
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(10px);
+    z-index: 1000;
+    transition: all 0.3s ease;
+    font-family: inherit;
+}
+
+.mini-player.hidden {
+    transform: translateY(100%);
+    opacity: 0;
+    pointer-events: none;
+}
+
+.mini-player-content {
+    padding: 12px;
+    position: relative;
+}
+
+.mini-controls {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 8px;
+}
+
+.mini-play-btn {
+    background: #9ca3af;
+    border: none;
+    border-radius: 50%;
+    width: 32px;
+    height: 32px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    padding: 0;
+    flex-shrink: 0;
+}
+
+.mini-play-btn:hover {
+    background: #6b7280;
+    transform: scale(1.05);
+}
+
+.mini-play-icon {
+    width: 0;
+    height: 0;
+    border-style: solid;
+    border-width: 6px 0 6px 9px;
+    border-color: transparent transparent transparent white;
+    margin-left: 2px;
+}
+
+.mini-pause-icon {
+    display: flex;
+    gap: 2px;
+}
+
+.mini-pause-icon span {
+    width: 3px;
+    height: 12px;
+    background: white;
+    border-radius: 1px;
+}
+
+.mini-info {
+    flex-grow: 1;
+    min-width: 0; /* Allows text to truncate */
+}
+
+.mini-title {
+    font-size: 13px;
+    font-weight: 500;
+    color: #374151;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-bottom: 2px;
+}
+
+.mini-time {
+    font-size: 11px;
+    color: #9ca3af;
+}
+
+.mini-visualizer {
+    width: 48px;
+    height: 24px;
+    display: flex;
+    align-items: flex-end;
+    gap: 1px;
+    flex-shrink: 0;
+}
+
+.mini-bar {
+    flex-grow: 1;
+    background: #67e8f9;
+    transition: height 0.05s ease;
+    min-height: 2px;
+    border-radius: 1px;
+}
+
+.mini-progress-bar {
+    background: #e5e7eb;
+    height: 3px;
+    border-radius: 1.5px;
+    cursor: pointer;
+    position: relative;
+    width: 100%;
+}
+
+.mini-progress {
+    background: #67e8f9;
+    height: 100%;
+    border-radius: 1.5px;
+    width: 0%;
+    transition: width 0.1s linear;
+}
+
+.mini-header {
+    display: flex;
+    justify-content: flex-end;
+    gap: 4px;
+    margin-bottom: 8px;
+}
+
+.mini-minimize-btn,
+.mini-close-btn {
+    background: none;
+    border: none;
+    font-size: 14px;
+    color: #9ca3af;
+    cursor: pointer;
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: all 0.2s;
+    font-weight: bold;
+}
+
+.mini-minimize-btn:hover,
+.mini-close-btn:hover {
+    background: #f3f4f6;
+    color: #374151;
+}
+
+.mini-minimize-btn {
+    font-size: 18px;
+    line-height: 1;
+}
+
+.mini-close-btn {
+    font-size: 16px;
+}
+
+/* Minimized state */
+.mini-player.minimized {
+    height: auto;
+}
+
+.mini-player.minimized .mini-controls,
+.mini-player.minimized .mini-progress-bar {
+    display: none;
+}
+
+.mini-player.minimized .mini-player-content {
+    padding: 8px 12px 4px 12px;
+}
+
+.mini-player.minimized .mini-header {
+    margin-bottom: 0;
+}
+
+/* Responsive adjustments to match Jekyll theme sidebar widths */
+@media (min-width: 1024px) {
+    /* Large screens: match $right-sidebar-width-narrow */
+    .mini-player {
+        width: 200px;
+    }
+}
+
+@media (min-width: 1280px) {
+    /* X-large screens: match $right-sidebar-width */
+    .mini-player {
+        width: 250px;
+    }
+}
+
+@media (max-width: 768px) {
+    .mini-player {
+        left: 10px;
+        bottom: 10px;
+        width: calc(100% - 20px);
+        max-width: 200px; /* Keep consistent with narrow sidebar */
+    }
+}
+
+@media (max-width: 480px) {
+    .mini-player {
+        width: calc(100% - 20px);
+    }
+
+    .mini-visualizer {
+        width: 36px;
+    }
+
+    .mini-title {
+        font-size: 12px;
+    }
+
+    .mini-time {
+        font-size: 10px;
+    }
+}
+
+/* Animation for mini player appearance */
+@keyframes slideUp {
+    from {
+        transform: translateY(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+.mini-player:not(.hidden) {
+    animation: slideUp 0.3s ease-out;
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+    .mini-player {
+        background: rgba(31, 41, 55, 0.95);
+        border: 1px solid rgba(75, 85, 99, 0.3);
+    }
+
+    .mini-title {
+        color: #f9fafb;
+    }
+
+    .mini-time {
+        color: #9ca3af;
+    }
+
+    .mini-minimize-btn:hover,
+    .mini-close-btn:hover {
+        background: rgba(75, 85, 99, 0.5);
+        color: #f9fafb;
+    }
+}
+
+/* Ensure mini player doesn't interfere with page content */
+body {
+    padding-bottom: env(safe-area-inset-bottom, 0);
+}
+
+/* Add some spacing for the mini player when it's visible */
+.mini-player:not(.hidden) ~ * {
+    margin-bottom: 100px;
+}
+
+/* Accessibility improvements */
+.mini-play-btn:focus,
+.mini-minimize-btn:focus,
+.mini-close-btn:focus {
+    outline: 2px solid #3b82f6;
+    outline-offset: 2px;
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+    .mini-player,
+    .mini-play-btn,
+    .mini-close-btn {
+        transition: none;
+    }
+
+    .mini-player:not(.hidden) {
+        animation: none;
+    }
+
+    .mini-bar {
+        transition: none;
+    }
+}

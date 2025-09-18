@@ -23,5 +23,8 @@
   },
   "devDependencies": {
     "uglify-js": "^3.17.4"
+  },
+  "dependencies": {
+    "playwright": "^1.55.0"
   }
 }

@@ -182,7 +182,7 @@
         const statusText = document.getElementById('statusText');
         const loading = document.getElementById('loading');
         const visualizer = document.getElementById('visualizer');
-        
+
         let isPlaying = false;
         let loadStartTime = Date.now();
         let audioContext;
@@ -196,6 +196,12 @@
         const VISUALIZATION_FPS = 60;
         const FRAME_INTERVAL = 1000 / VISUALIZATION_FPS;
         const SMOOTHING_FACTOR = 0.7;
+
+        // Track information for global player
+        const trackInfo = {
+            src: audio.src,
+            title: 'STUDY WITH MIKU - Part 3'
+        };
 
         // Create visualizer bars
         for (let i = 0; i < BARS_COUNT; i++) {
@@ -338,10 +344,35 @@
 
         async function togglePlay() {
             try {
+                // Check if global player exists and load track
+                if (window.globalAudioPlayer) {
+                    // If the global player already has this track and is playing, pause it
+                    const currentTrack = window.globalAudioPlayer.getCurrentTrack();
+                    if (currentTrack && currentTrack.src === trackInfo.src && window.globalAudioPlayer.isCurrentlyPlaying()) {
+                        window.globalAudioPlayer.pause();
+                        isPlaying = false;
+                        statusText.textContent = 'Paused';
+                        stopVisualizer();
+                    } else {
+                        // Load and play the track in global player
+                        window.globalAudioPlayer.loadTrack(trackInfo, true);
+                        isPlaying = true;
+                        statusText.textContent = 'Playing (Global Player Active)';
+                        // Start local visualizer for full-size display
+                        if (!audioContext) {
+                            await initAudioContext();
+                        }
+                        visualizerAnimationId = requestAnimationFrame(updateVisualizer);
+                    }
+                    updatePlayButton(isPlaying);
+                    return;
+                }
+
+                // Fallback to local audio if global player not available
                 if (!audioContext) {
                     await initAudioContext();
                 }
-                
+
                 if (!isPlaying) {
                     statusText.textContent = 'Starting playback...';
                     await audio.play();
@@ -494,5 +525,57 @@
                 togglePlay();
             }
         });
+
+        // Sync with global player state
+        function syncWithGlobalPlayer() {
+            if (!window.globalAudioPlayer) return;
+
+            const globalTrack = window.globalAudioPlayer.getCurrentTrack();
+            const globalIsPlaying = window.globalAudioPlayer.isCurrentlyPlaying();
+
+            // Check if global player is playing our track
+            if (globalTrack && globalTrack.src === trackInfo.src) {
+                isPlaying = globalIsPlaying;
+                updatePlayButton(isPlaying);
+
+                if (globalIsPlaying) {
+                    statusText.textContent = 'Playing (Global Player Active)';
+                    if (!visualizerAnimationId) {
+                        visualizerAnimationId = requestAnimationFrame(updateVisualizer);
+                    }
+                } else {
+                    statusText.textContent = 'Paused';
+                    stopVisualizer();
+                }
+
+                // Sync progress
+                const currentTime = window.globalAudioPlayer.getCurrentTime();
+                const duration = window.globalAudioPlayer.getDuration();
+                if (!isNaN(duration) && duration > 0) {
+                    const percentage = (currentTime / duration) * 100;
+                    progress.style.width = `${percentage}%`;
+                    timeDisplay.textContent = `${formatTime(currentTime)}/${formatTime(duration)}`;
+                }
+            } else if (isPlaying && globalIsPlaying && globalTrack && globalTrack.src !== trackInfo.src) {
+                // Another track is playing, pause this one
+                isPlaying = false;
+                updatePlayButton(false);
+                statusText.textContent = 'Paused (Another track playing)';
+                stopVisualizer();
+            }
+        }
+
+        // Set up periodic sync with global player
+        if (window.globalAudioPlayer) {
+            setInterval(syncWithGlobalPlayer, 1000);
+        } else {
+            // Wait for global player to initialize
+            const waitForGlobalPlayer = setInterval(() => {
+                if (window.globalAudioPlayer) {
+                    clearInterval(waitForGlobalPlayer);
+                    setInterval(syncWithGlobalPlayer, 1000);
+                }
+            }, 100);
+        }
     });
 </script>
