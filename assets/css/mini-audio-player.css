@@ -22,6 +22,7 @@
     transform: translateY(100%);
     opacity: 0;
     pointer-events: none;
+    visibility: hidden;
 }
 
 .mini-player-content {
@@ -244,6 +245,8 @@
 
 .mini-player:not(.hidden) {
     animation: slideUp 0.3s ease-out;
+    visibility: visible !important;
+    display: block !important;
 }
 
 /* Dark mode support */

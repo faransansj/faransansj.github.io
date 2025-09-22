@@ -13,6 +13,8 @@ class GlobalAudioPlayer {
         this.isMinimized = false;
         this.originalSidebarDisplay = null;
         this.stateUpdateInterval = null;
+        this.isRestoringState = false;
+        this.lastRestoredTimestamp = null;
         this.visualizerData = {
             analyser: null,
             dataArray: null,
@@ -89,7 +91,10 @@ class GlobalAudioPlayer {
             console.log('Mini player added to DOM');
 
             // Auto-show mini player when created (key fix for visibility)
-            this.showMiniPlayer();
+            setTimeout(() => {
+                this.showMiniPlayer();
+                console.log('Mini player auto-shown after creation');
+            }, 100);
 
             // Create visualizer bars for mini player
             const visualizer = this.miniPlayerElement.querySelector('#miniVisualizer');
@@ -142,30 +147,40 @@ class GlobalAudioPlayer {
             }
         });
 
-        // Handle beforeunload to maintain state
-        window.addEventListener('beforeunload', () => {
-            if (this.audio && this.isPlaying) {
-                // Store current state in sessionStorage
-                sessionStorage.setItem('globalAudioState', JSON.stringify({
-                    currentTime: this.audio.currentTime,
+        // Enhanced page unload handling for audio continuity
+        const saveCurrentState = () => {
+            if (this.audio && this.currentTrack) {
+                const state = {
+                    currentTime: this.audio.currentTime || 0,
                     trackInfo: this.currentTrack,
                     isPlaying: this.isPlaying,
-                    isMinimized: this.isMinimized
-                }));
+                    isMinimized: this.isMinimized,
+                    timestamp: Date.now()
+                };
+                sessionStorage.setItem('globalAudioState', JSON.stringify(state));
+                console.log('Audio state saved:', state);
+            }
+        };
+
+        // Handle beforeunload to maintain state
+        window.addEventListener('beforeunload', saveCurrentState);
+
+        // Handle page unload with pagehide event (more reliable)
+        window.addEventListener('pagehide', saveCurrentState);
+
+        // Also save state when visibility changes (e.g., tab switching)
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden) {
+                saveCurrentState();
             }
         });
 
-        // Handle page unload with pagehide event (more reliable)
-        window.addEventListener('pagehide', () => {
-            if (this.audio && this.isPlaying) {
-                sessionStorage.setItem('globalAudioState', JSON.stringify({
-                    currentTime: this.audio.currentTime,
-                    trackInfo: this.currentTrack,
-                    isPlaying: this.isPlaying,
-                    isMinimized: this.isMinimized
-                }));
+        // Periodic state saving during playback
+        setInterval(() => {
+            if (this.isPlaying && this.audio && this.currentTrack) {
+                saveCurrentState();
             }
-        });
+        }, 2000); // Save every 2 seconds during playback
 
         // Multiple event listeners for state restoration
         window.addEventListener('DOMContentLoaded', () => {
@@ -183,58 +198,93 @@ class GlobalAudioPlayer {
             });
         } else {
             // DOM is already loaded, restore immediately
-            setTimeout(() => this.restoreState(), 100);
+            this.restoreState();
         }
+
+        // Additional immediate restoration attempts
+        setTimeout(() => this.restoreState(), 50);
+        setTimeout(() => this.restoreState(), 200);
+        setTimeout(() => this.restoreState(), 500);
     }
 
     restoreState() {
+        // Prevent multiple restorations of the same state
+        if (this.isRestoringState) {
+            return;
+        }
+
         const savedState = sessionStorage.getItem('globalAudioState');
         if (savedState) {
             try {
                 const state = JSON.parse(savedState);
-                if (state.trackInfo) {
+                if (state.trackInfo && (!this.lastRestoredTimestamp || state.timestamp !== this.lastRestoredTimestamp)) {
                     console.log('Restoring audio state:', state);
+                    this.isRestoringState = true;
+                    this.lastRestoredTimestamp = state.timestamp;
                     this.loadTrack(state.trackInfo, false);
 
                     if (this.audio) {
-                        this.audio.currentTime = state.currentTime || 0;
+                        // Set up audio event listeners for seamless restoration
+                        const handleCanPlay = () => {
+                            this.audio.currentTime = state.currentTime || 0;
 
-                        // Restore minimized state
-                        if (state.isMinimized) {
-                            this.isMinimized = state.isMinimized;
-                            setTimeout(() => {
-                                if (this.miniPlayerElement) {
-                                    this.miniPlayerElement.classList.add('minimized');
-                                    const minimizeBtn = this.miniPlayerElement.querySelector('#miniMinimizeBtn');
-                                    if (minimizeBtn) {
-                                        minimizeBtn.textContent = '+';
-                                        minimizeBtn.title = 'Expand';
+                            // Restore minimized state
+                            if (state.isMinimized) {
+                                this.isMinimized = state.isMinimized;
+                                setTimeout(() => {
+                                    if (this.miniPlayerElement) {
+                                        this.miniPlayerElement.classList.add('minimized');
+                                        const minimizeBtn = this.miniPlayerElement.querySelector('#miniMinimizeBtn');
+                                        if (minimizeBtn) {
+                                            minimizeBtn.textContent = '+';
+                                            minimizeBtn.title = 'Expand';
+                                        }
                                     }
-                                }
-                            }, 200);
-                        }
+                                }, 100);
+                            }
 
-                        if (state.isPlaying) {
-                            // Show mini player immediately
-                            this.showMiniPlayer();
+                            if (state.isPlaying) {
+                                // Show mini player immediately
+                                this.showMiniPlayer();
 
-                            // Try to play after a short delay to ensure audio context is ready
-                            setTimeout(() => {
+                                // Try to play immediately for seamless experience
                                 this.play().catch(error => {
                                     console.log('Auto-play prevented, user interaction required:', error);
                                     // Update UI to show paused state
                                     this.isPlaying = false;
                                     this.updatePlayButton();
+                                    // Update status to indicate user action needed
+                                    const titleElement = this.miniPlayerElement?.querySelector('#miniTitle');
+                                    if (titleElement) {
+                                        titleElement.textContent = '▶️ Click to resume';
+                                    }
                                 });
-                            }, 300);
-                        } else {
-                            // Show mini player even if not playing (track was loaded)
-                            this.showMiniPlayer();
-                        }
+                            } else {
+                                // Show mini player even if not playing (track was loaded)
+                                this.showMiniPlayer();
+                            }
+
+                            // Remove the event listener after restoration
+                            this.audio.removeEventListener('canplay', handleCanPlay);
+                            this.isRestoringState = false;
+                        };
+
+                        // Listen for when audio is ready to play
+                        this.audio.addEventListener('canplay', handleCanPlay);
+
+                        // Fallback: try restoration after a short delay if canplay doesn't fire
+                        setTimeout(() => {
+                            if (this.audio.readyState >= 3) { // HAVE_FUTURE_DATA
+                                handleCanPlay();
+                            } else {
+                                this.isRestoringState = false; // Reset flag if restoration fails
+                            }
+                        }, 500);
                     }
                 }
             } catch (e) {
                 console.error('Failed to restore audio state:', e);
+                this.isRestoringState = false; // Reset flag on error
             }
         }
     }
@@ -484,6 +534,8 @@ class GlobalAudioPlayer {
 
         if (this.miniPlayerElement) {
             this.miniPlayerElement.classList.remove('hidden');
+            // Force display to ensure visibility
+            this.miniPlayerElement.style.display = 'block';
             console.log('Mini player made visible');
             this.hideSidebarOnOtherPages();
         } else {
@@ -611,6 +663,24 @@ function initializeGlobalPlayer() {
     if (!window.globalAudioPlayer) {
         console.log('Initializing GlobalAudioPlayer...');
         window.globalAudioPlayer = new GlobalAudioPlayer();
+
+        // Auto-load the default track only on homepage
+        setTimeout(() => {
+            const currentPath = window.location.pathname;
+            const isHomePage = currentPath === '/' ||
+                              currentPath === '/index.html' ||
+                              currentPath === '' ||
+                              (currentPath.endsWith('/') && currentPath.length <= 1);
+
+            if (isHomePage) {
+                const defaultTrack = {
+                    src: '/assets/audio/STUDY_WITH_MIKU-part3.mp3',
+                    title: 'STUDY WITH MIKU - Part 3'
+                };
+                window.globalAudioPlayer.loadTrack(defaultTrack, false);
+                console.log('Default track loaded into mini player on homepage');
+            }
+        }, 1000);
     }
 }
 
