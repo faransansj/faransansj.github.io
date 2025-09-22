@@ -1,14 +1,14 @@
 /**
- * Mini Audio Player Styles
- * Persistent audio player positioned in bottom-left corner
+ * Persistent Audio Player Styles
+ * Service Worker-based cross-page audio continuity
  */
 
-.mini-player {
+.persistent-player {
     position: fixed;
     bottom: 20px;
     left: 20px;
-    width: 200px; /* Match narrow sidebar width */
-    background: white;
+    width: 200px;
+    background: rgba(255, 255, 255, 0.95);
     border-radius: 12px;
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
     border: 1px solid rgba(255, 255, 255, 0.2);
@@ -18,129 +18,27 @@
     font-family: inherit;
 }
 
-.mini-player.hidden {
+.persistent-player.hidden {
     transform: translateY(100%);
     opacity: 0;
     pointer-events: none;
     visibility: hidden;
 }
 
-.mini-player-content {
+.persistent-player-content {
     padding: 12px;
     position: relative;
 }
 
-.mini-controls {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    margin-bottom: 8px;
-}
-
-.mini-play-btn {
-    background: #9ca3af;
-    border: none;
-    border-radius: 50%;
-    width: 32px;
-    height: 32px;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.2s;
-    padding: 0;
-    flex-shrink: 0;
-}
-
-.mini-play-btn:hover {
-    background: #6b7280;
-    transform: scale(1.05);
-}
-
-.mini-play-icon {
-    width: 0;
-    height: 0;
-    border-style: solid;
-    border-width: 6px 0 6px 9px;
-    border-color: transparent transparent transparent white;
-    margin-left: 2px;
-}
-
-.mini-pause-icon {
-    display: flex;
-    gap: 2px;
-}
-
-.mini-pause-icon span {
-    width: 3px;
-    height: 12px;
-    background: white;
-    border-radius: 1px;
-}
-
-.mini-info {
-    flex-grow: 1;
-    min-width: 0; /* Allows text to truncate */
-}
-
-.mini-title {
-    font-size: 13px;
-    font-weight: 500;
-    color: #374151;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    margin-bottom: 2px;
-}
-
-.mini-time {
-    font-size: 11px;
-    color: #9ca3af;
-}
-
-.mini-visualizer {
-    width: 48px;
-    height: 24px;
-    display: flex;
-    align-items: flex-end;
-    gap: 1px;
-    flex-shrink: 0;
-}
-
-.mini-bar {
-    flex-grow: 1;
-    background: #67e8f9;
-    transition: height 0.05s ease;
-    min-height: 2px;
-    border-radius: 1px;
-}
-
-.mini-progress-bar {
-    background: #e5e7eb;
-    height: 3px;
-    border-radius: 1.5px;
-    cursor: pointer;
-    position: relative;
-    width: 100%;
-}
-
-.mini-progress {
-    background: #67e8f9;
-    height: 100%;
-    border-radius: 1.5px;
-    width: 0%;
-    transition: width 0.1s linear;
-}
-
-.mini-header {
+.persistent-header {
     display: flex;
     justify-content: flex-end;
     gap: 4px;
     margin-bottom: 8px;
 }
 
-.mini-minimize-btn,
-.mini-close-btn {
+.persistent-minimize-btn,
+.persistent-close-btn {
     background: none;
     border: none;
     font-size: 14px;
@@ -156,76 +54,183 @@
     font-weight: bold;
 }
 
-.mini-minimize-btn:hover,
-.mini-close-btn:hover {
+.persistent-minimize-btn:hover,
+.persistent-close-btn:hover {
     background: #f3f4f6;
     color: #374151;
 }
 
-.mini-minimize-btn {
+.persistent-minimize-btn {
     font-size: 18px;
     line-height: 1;
 }
 
-.mini-close-btn {
+.persistent-close-btn {
     font-size: 16px;
 }
 
+.persistent-controls {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 8px;
+}
+
+.persistent-play-btn {
+    background: #9ca3af;
+    border: none;
+    border-radius: 50%;
+    width: 32px;
+    height: 32px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    padding: 0;
+    flex-shrink: 0;
+}
+
+.persistent-play-btn:hover {
+    background: #6b7280;
+    transform: scale(1.05);
+}
+
+.persistent-play-icon {
+    width: 0;
+    height: 0;
+    border-style: solid;
+    border-width: 6px 0 6px 9px;
+    border-color: transparent transparent transparent white;
+    margin-left: 2px;
+}
+
+.persistent-pause-icon {
+    display: flex;
+    gap: 2px;
+}
+
+.persistent-pause-icon span {
+    width: 3px;
+    height: 12px;
+    background: white;
+    border-radius: 1px;
+}
+
+.persistent-info {
+    flex-grow: 1;
+    min-width: 0;
+}
+
+.persistent-title {
+    font-size: 13px;
+    font-weight: 500;
+    color: #374151;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-bottom: 2px;
+}
+
+.persistent-time {
+    font-size: 11px;
+    color: #9ca3af;
+}
+
+.persistent-visualizer {
+    width: 48px;
+    height: 24px;
+    display: flex;
+    align-items: flex-end;
+    gap: 1px;
+    flex-shrink: 0;
+}
+
+.persistent-bar {
+    flex-grow: 1;
+    background: #67e8f9;
+    transition: height 0.05s ease;
+    min-height: 2px;
+    border-radius: 1px;
+}
+
+.persistent-progress-bar {
+    background: #e5e7eb;
+    height: 3px;
+    border-radius: 1.5px;
+    cursor: pointer;
+    position: relative;
+    width: 100%;
+}
+
+.persistent-progress {
+    background: #67e8f9;
+    height: 100%;
+    border-radius: 1.5px;
+    width: 0%;
+    transition: width 0.1s linear;
+}
+
+.persistent-status {
+    font-size: 10px;
+    color: #9ca3af;
+    text-align: center;
+    margin-top: 4px;
+}
+
 /* Minimized state */
-.mini-player.minimized {
+.persistent-player.minimized {
     height: auto;
 }
 
-.mini-player.minimized .mini-controls,
-.mini-player.minimized .mini-progress-bar {
+.persistent-player.minimized .persistent-controls,
+.persistent-player.minimized .persistent-progress-bar {
     display: none;
 }
 
-.mini-player.minimized .mini-player-content {
+.persistent-player.minimized .persistent-player-content {
     padding: 8px 12px 4px 12px;
 }
 
-.mini-player.minimized .mini-header {
+.persistent-player.minimized .persistent-header {
     margin-bottom: 0;
 }
 
-/* Responsive adjustments to match Jekyll theme sidebar widths */
+/* Responsive adjustments */
 @media (min-width: 1024px) {
-    /* Large screens: match $right-sidebar-width-narrow */
-    .mini-player {
+    .persistent-player {
         width: 200px;
     }
 }
 
 @media (min-width: 1280px) {
-    /* X-large screens: match $right-sidebar-width */
-    .mini-player {
+    .persistent-player {
         width: 250px;
     }
 }
 
 @media (max-width: 768px) {
-    .mini-player {
+    .persistent-player {
         left: 10px;
         bottom: 10px;
         width: calc(100% - 20px);
         max-width: 200px;
     }
 
-    .mini-visualizer {
+    .persistent-visualizer {
         width: 36px;
     }
 
-    .mini-title {
+    .persistent-title {
         font-size: 12px;
     }
 
-    .mini-time {
+    .persistent-time {
         font-size: 10px;
     }
 }
 
-/* Animation for mini player appearance */
+/* Animation for player appearance */
 @keyframes slideUp {
     from {
         transform: translateY(100%);
@@ -237,7 +242,7 @@
     }
 }
 
-.mini-player:not(.hidden) {
+.persistent-player:not(.hidden) {
     animation: slideUp 0.3s ease-out;
     visibility: visible !important;
     display: block !important;
@@ -245,53 +250,53 @@
 
 /* Dark mode support */
 @media (prefers-color-scheme: dark) {
-    .mini-player {
+    .persistent-player {
         background: rgba(31, 41, 55, 0.95);
         border: 1px solid rgba(75, 85, 99, 0.3);
     }
 
-    .mini-title {
+    .persistent-title {
         color: #f9fafb;
     }
 
-    .mini-time {
+    .persistent-time,
+    .persistent-status {
         color: #9ca3af;
     }
 
-    .mini-minimize-btn:hover,
-    .mini-close-btn:hover {
+    .persistent-minimize-btn:hover,
+    .persistent-close-btn:hover {
         background: rgba(75, 85, 99, 0.5);
         color: #f9fafb;
     }
 }
 
-/* Ensure mini player doesn't interfere with page content */
-body {
-    padding-bottom: env(safe-area-inset-bottom, 0);
-}
-
-
 /* Accessibility improvements */
-.mini-play-btn:focus,
-.mini-minimize-btn:focus,
-.mini-close-btn:focus {
+.persistent-play-btn:focus,
+.persistent-minimize-btn:focus,
+.persistent-close-btn:focus {
     outline: 2px solid #3b82f6;
     outline-offset: 2px;
 }
 
 /* Reduced motion support */
 @media (prefers-reduced-motion: reduce) {
-    .mini-player,
-    .mini-play-btn,
-    .mini-close-btn {
+    .persistent-player,
+    .persistent-play-btn,
+    .persistent-close-btn {
         transition: none;
     }
 
-    .mini-player:not(.hidden) {
+    .persistent-player:not(.hidden) {
         animation: none;
     }
 
-    .mini-bar {
+    .persistent-bar {
         transition: none;
     }
+}
+
+/* Ensure player doesn't interfere with page content */
+body {
+    padding-bottom: env(safe-area-inset-bottom, 0);
 }

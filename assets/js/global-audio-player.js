@@ -15,6 +15,14 @@ class GlobalAudioPlayer {
         this.stateUpdateInterval = null;
         this.isRestoringState = false;
         this.lastRestoredTimestamp = null;
+        this.isToggling = false; // 중복 토글 방지
+        this.crossPageContinuity = {
+            enabled: true,
+            lastSaveTime: 0,
+            saveInterval: 1000, // 1초마다 저장
+            maxRestoreAttempts: 3,
+            restoreAttemptCount: 0
+        };
         this.visualizerData = {
             analyser: null,
             dataArray: null,
@@ -53,11 +61,8 @@ class GlobalAudioPlayer {
 
     createMiniPlayer() {
         if (this.miniPlayerElement) {
-            console.log('Mini player already exists');
             return;
         }
-
-        console.log('Creating mini player element...');
 
         try {
             // Create mini player container
@@ -88,12 +93,10 @@ class GlobalAudioPlayer {
 
             // Add to body
             document.body.appendChild(this.miniPlayerElement);
-            console.log('Mini player added to DOM');
 
             // Auto-show mini player when created (key fix for visibility)
             setTimeout(() => {
                 this.showMiniPlayer();
-                console.log('Mini player auto-shown after creation');
             }, 100);
 
             // Create visualizer bars for mini player
@@ -104,13 +107,11 @@ class GlobalAudioPlayer {
                     bar.className = 'mini-bar';
                     visualizer.appendChild(bar);
                 }
-                console.log(`Created ${this.BARS_COUNT} visualizer bars`);
             }
 
             this.bindMiniPlayerEvents();
-            console.log('Mini player created successfully');
         } catch (error) {
-            console.error('Error creating mini player:', error);
+            // Silently handle creation errors
         }
     }
 
@@ -155,10 +156,13 @@ class GlobalAudioPlayer {
                     trackInfo: this.currentTrack,
                     isPlaying: this.isPlaying,
                     isMinimized: this.isMinimized,
-                    timestamp: Date.now()
+                    timestamp: Date.now(),
+                    volume: this.audio.volume || 1,
+                    crossPageFlag: true // 크로스 페이지 연속성 플래그
                 };
                 sessionStorage.setItem('globalAudioState', JSON.stringify(state));
-                console.log('Audio state saved:', state);
+                // 추가 백업 저장
+                localStorage.setItem('globalAudioBackup', JSON.stringify(state));
             }
         };
 
@@ -175,12 +179,17 @@ class GlobalAudioPlayer {
             }
         });
 
-        // Periodic state saving during playback
+        // Periodic state saving during playback - 크로스 페이지 연속성 강화
         setInterval(() => {
             if (this.isPlaying && this.audio && this.currentTrack) {
                 saveCurrentState();
             }
-        }, 2000); // Save every 2 seconds during playback
+            // 비활성 상태에서도 주기적으로 저장 (네비게이션 대비)
+            if (this.currentTrack && Date.now() - this.crossPageContinuity.lastSaveTime > this.crossPageContinuity.saveInterval) {
+                saveCurrentState();
+                this.crossPageContinuity.lastSaveTime = Date.now();
+            }
+        }, 1000); // 더 자주 저장 (1초마다)
 
         // Multiple event listeners for state restoration
         window.addEventListener('DOMContentLoaded', () => {
@@ -213,12 +222,18 @@ class GlobalAudioPlayer {
             return;
         }
 
-        const savedState = sessionStorage.getItem('globalAudioState');
+        // 크로스 페이지 연속성 강화된 복원
+        let savedState = sessionStorage.getItem('globalAudioState');
+
+        // 세션 스토리지에 없으면 로컬 스토리지 백업에서 복원
+        if (!savedState) {
+            savedState = localStorage.getItem('globalAudioBackup');
+        }
+
         if (savedState) {
             try {
                 const state = JSON.parse(savedState);
                 if (state.trackInfo && (!this.lastRestoredTimestamp || state.timestamp !== this.lastRestoredTimestamp)) {
-                    console.log('Restoring audio state:', state);
                     this.isRestoringState = true;
                     this.lastRestoredTimestamp = state.timestamp;
                     this.loadTrack(state.trackInfo, false);
@@ -226,7 +241,15 @@ class GlobalAudioPlayer {
                     if (this.audio) {
                         // Set up audio event listeners for seamless restoration
                         const handleCanPlay = () => {
-                            this.audio.currentTime = state.currentTime || 0;
+                            // 더 정확한 시간 복원
+                            if (state.currentTime && state.currentTime > 0) {
+                                this.audio.currentTime = state.currentTime;
+                            }
+
+                            // 볼륨 복원
+                            if (state.volume !== undefined) {
+                                this.audio.volume = state.volume;
+                            }
 
                             // Restore minimized state
                             if (state.isMinimized) {
@@ -247,18 +270,30 @@ class GlobalAudioPlayer {
                                 // Show mini player immediately
                                 this.showMiniPlayer();
 
-                                // Try to play immediately for seamless experience
-                                this.play().catch(error => {
-                                    console.log('Auto-play prevented, user interaction required:', error);
-                                    // Update UI to show paused state
-                                    this.isPlaying = false;
-                                    this.updatePlayButton();
-                                    // Update status to indicate user action needed
-                                    const titleElement = this.miniPlayerElement?.querySelector('#miniTitle');
-                                    if (titleElement) {
-                                        titleElement.textContent = '▶️ Click to resume';
-                                    }
-                                });
+                                // 크로스 페이지 연속성을 위한 자동 재생 시도
+                                const attemptAutoPlay = () => {
+                                    this.play().catch(() => {
+                                        // Auto-play prevented, UI 업데이트
+                                        this.isPlaying = false;
+                                        this.updatePlayButton();
+
+                                        const titleElement = this.miniPlayerElement?.querySelector('#miniTitle');
+                                        if (titleElement) {
+                                            titleElement.textContent = '▶️ Click to resume';
+                                            titleElement.style.cursor = 'pointer';
+
+                                            // 클릭으로 재생 재개
+                                            titleElement.addEventListener('click', () => {
+                                                this.play();
+                                                titleElement.textContent = this.currentTrack.title;
+                                                titleElement.style.cursor = 'default';
+                                            }, { once: true });
+                                        }
+                                    });
+                                };
+
+                                // 약간의 지연 후 자동 재생 시도
+                                setTimeout(attemptAutoPlay, 500);
                             } else {
                                 // Show mini player even if not playing (track was loaded)
                                 this.showMiniPlayer();
@@ -283,9 +318,33 @@ class GlobalAudioPlayer {
                     }
                 }
             } catch (e) {
-                console.error('Failed to restore audio state:', e);
                 this.isRestoringState = false; // Reset flag on error
+
+                // 복원 실패시 재시도
+                if (this.crossPageContinuity.restoreAttemptCount < this.crossPageContinuity.maxRestoreAttempts) {
+                    this.crossPageContinuity.restoreAttemptCount++;
+                    setTimeout(() => this.restoreState(), 1000);
+                }
             }
+        } else {
+            // 저장된 상태가 없으면 기본 트랙 로드 시도
+            this.initializeDefaultTrack();
+        }
+    }
+
+    initializeDefaultTrack() {
+        const currentPath = window.location.pathname;
+        const isHomePage = currentPath === '/' ||
+                          currentPath === '/index.html' ||
+                          currentPath === '' ||
+                          (currentPath.endsWith('/') && currentPath.length <= 1);
+
+        if (isHomePage) {
+            const defaultTrack = {
+                src: '/assets/audio/STUDY_WITH_MIKU-part3.mp3',
+                title: 'STUDY WITH MIKU - Part 3'
+            };
+            this.loadTrack(defaultTrack, false);
         }
     }
 
@@ -296,6 +355,9 @@ class GlobalAudioPlayer {
         if (!this.audio) {
             this.audio = document.createElement('audio');
             this.audio.preload = 'metadata';
+            // 크로스 페이지 연속성을 위한 속성 설정
+            this.audio.crossOrigin = 'anonymous';
+            this.audio.preservesPitch = false;
             this.bindAudioEvents();
         }
 
@@ -310,6 +372,9 @@ class GlobalAudioPlayer {
         }
 
         this.showMiniPlayer();
+
+        // 트랙 로드시 상태 저장
+        this.saveState();
     }
 
     saveState() {
@@ -350,6 +415,7 @@ class GlobalAudioPlayer {
 
         this.audio.addEventListener('ended', () => {
             this.isPlaying = false;
+            this.isToggling = false; // 재설정
             this.updatePlayButton();
             this.stopVisualizer();
         });
@@ -360,6 +426,7 @@ class GlobalAudioPlayer {
 
         this.audio.addEventListener('playing', () => {
             this.isPlaying = true;
+            this.isToggling = false; // 재설정
             this.updatePlayButton();
             this.initAudioContext();
             this.startVisualizer();
@@ -369,10 +436,18 @@ class GlobalAudioPlayer {
 
         this.audio.addEventListener('pause', () => {
             this.isPlaying = false;
+            this.isToggling = false; // 재설정
             this.updatePlayButton();
             this.stopVisualizer();
             this.stopStateUpdates();
             this.saveState(); // Save immediately when paused
+        });
+
+        // 오디오 에러 핸들링 추가
+        this.audio.addEventListener('error', () => {
+            this.isPlaying = false;
+            this.isToggling = false;
+            this.updatePlayButton();
         });
     }
 
@@ -397,7 +472,7 @@ class GlobalAudioPlayer {
                 await this.audioContext.resume();
             }
         } catch (error) {
-            console.error('Failed to initialize audio context:', error);
+            // Silently handle audio context initialization errors
         }
     }
 
@@ -446,12 +521,21 @@ class GlobalAudioPlayer {
         if (!this.audio) return;
 
         try {
+            // 크로스 페이지 연속성을 위한 오디오 컨텍스트 복원
+            if (this.audioContext && this.audioContext.state === 'suspended') {
+                await this.audioContext.resume();
+            }
+
             await this.audio.play();
-            this.isPlaying = true;
-            this.updatePlayButton();
+            // 상태는 'playing' 이벤트에서 업데이트됨
             this.showMiniPlayer();
+
+            // 재생 시작시 즉시 상태 저장
+            this.saveState();
         } catch (error) {
-            console.error('Playback error:', error);
+            // 재생 실패시 상태 복구
+            this.isPlaying = false;
+            this.updatePlayButton();
         }
     }
 
@@ -459,8 +543,7 @@ class GlobalAudioPlayer {
         if (!this.audio) return;
 
         this.audio.pause();
-        this.isPlaying = false;
-        this.updatePlayButton();
+        // 상태는 'pause' 이벤트에서 업데이트됨
     }
 
     stop() {
@@ -483,15 +566,53 @@ class GlobalAudioPlayer {
     async togglePlay() {
         if (!this.audio || !this.currentTrack) return;
 
-        if (this.isPlaying) {
-            this.pause();
-        } else {
-            await this.play();
+        // 중복 호출 방지
+        if (this.isToggling) {
+            return;
+        }
+        this.isToggling = true;
+
+        try {
+            // 현재 상태를 오디오 요소에서 직접 확인
+            const actuallyPlaying = !this.audio.paused && !this.audio.ended;
+
+            if (actuallyPlaying) {
+                this.pause();
+            } else {
+                await this.play();
+            }
+        } catch (error) {
+            // 오류 발생시 상태 복구
+            this.isPlaying = false;
+            this.updatePlayButton();
+        } finally {
+            this.isToggling = false;
         }
     }
 
     updatePlayButton() {
-        const playIcon = this.miniPlayerElement.querySelector('.mini-play-icon');
+        if (!this.miniPlayerElement) {
+            return;
+        }
+
+        // 재생/일시정지 아이콘을 더 안전하게 찾기
+        let playIcon = this.miniPlayerElement.querySelector('.mini-play-icon');
+        if (!playIcon) {
+            playIcon = this.miniPlayerElement.querySelector('.mini-pause-icon');
+        }
+
+        if (!playIcon) {
+            // 아이콘 요소가 없으면 버튼 내에서 찾기
+            const playButton = this.miniPlayerElement.querySelector('#miniPlayBtn');
+            if (playButton) {
+                playIcon = playButton.querySelector('div');
+            }
+        }
+
+        if (!playIcon) {
+            return; // 안전하게 종료
+        }
+
         if (this.isPlaying) {
             playIcon.className = 'mini-pause-icon';
             playIcon.innerHTML = '<span></span><span></span>';
@@ -525,10 +646,7 @@ class GlobalAudioPlayer {
     }
 
     showMiniPlayer() {
-        console.log('Attempting to show mini player...');
-
         if (!this.miniPlayerElement) {
-            console.log('Mini player element not found, creating...');
             this.createMiniPlayer();
         }
 
@@ -536,10 +654,7 @@ class GlobalAudioPlayer {
             this.miniPlayerElement.classList.remove('hidden');
             // Force display to ensure visibility
             this.miniPlayerElement.style.display = 'block';
-            console.log('Mini player made visible');
             this.hideSidebarOnOtherPages();
-        } else {
-            console.error('Failed to create or find mini player element');
         }
     }
 
@@ -574,8 +689,6 @@ class GlobalAudioPlayer {
                           currentPath === '' ||
                           (currentPath.endsWith('/') && currentPath.length <= 1);
 
-        console.log(`Current path: ${currentPath}, Is home page: ${isHomePage}`);
-
         if (!isHomePage) {
             // Comprehensive sidebar element selectors
             const sidebarSelectors = [
@@ -594,14 +707,10 @@ class GlobalAudioPlayer {
                     if (element && element.style.display !== 'none') {
                         element.style.display = 'none';
                         hiddenCount++;
-                        console.log(`Hidden element: ${selector}`);
                     }
                 });
             });
 
-            console.log(`Total sidebar elements hidden: ${hiddenCount}`);
-        } else {
-            console.log('Home page detected, keeping sidebar visible');
         }
     }
 
@@ -610,8 +719,6 @@ class GlobalAudioPlayer {
         const authorProfile = document.querySelector('.author__avatar');
         const authorContent = document.querySelector('.author__content');
 
-        console.log('Restoring sidebar elements...');
-
         if (sidebar) {
             if (this.originalSidebarDisplay !== null) {
                 sidebar.style.display = this.originalSidebarDisplay;
@@ -619,17 +726,14 @@ class GlobalAudioPlayer {
             } else {
                 sidebar.style.display = '';
             }
-            console.log('Sidebar restored');
         }
 
         if (authorProfile) {
             authorProfile.style.display = '';
-            console.log('Author profile restored');
         }
 
         if (authorContent) {
             authorContent.style.display = '';
-            console.log('Author content restored');
         }
     }
 
@@ -661,7 +765,6 @@ class GlobalAudioPlayer {
 // Initialize global audio player with multiple fallback methods
 function initializeGlobalPlayer() {
     if (!window.globalAudioPlayer) {
-        console.log('Initializing GlobalAudioPlayer...');
         window.globalAudioPlayer = new GlobalAudioPlayer();
 
         // Auto-load the default track only on homepage
@@ -678,7 +781,6 @@ function initializeGlobalPlayer() {
                     title: 'STUDY WITH MIKU - Part 3'
                 };
                 window.globalAudioPlayer.loadTrack(defaultTrack, false);
-                console.log('Default track loaded into mini player on homepage');
             }
         }, 1000);
     }
@@ -702,7 +804,6 @@ initializeGlobalPlayer();
 // Additional check after a short delay (for dynamic content)
 setTimeout(() => {
     if (!window.globalAudioPlayer || !window.globalAudioPlayer.isInitialized) {
-        console.log('Late initialization of GlobalAudioPlayer...');
         initializeGlobalPlayer();
     }
 }, 500);
