@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>미니플레이어 간격 테스트</title>
+    <link rel="stylesheet" href="/assets/css/persistent-audio-player.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            line-height: 1.6;
+            background: #f5f5f5;
+        }
+        .test-content {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .content-box {
+            background: #e8f4fd;
+            padding: 20px;
+            margin: 20px 0;
+            border-left: 4px solid #1976d2;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-content">
+        <h1>🎵 미니플레이어 간격 테스트</h1>
+
+        <div class="content-box">
+            <h2>테스트 목적</h2>
+            <p>미니플레이어가 게시글 내용과 적절한 간격을 유지하는지 확인합니다.</p>
+        </div>
+
+        <div class="content-box">
+            <h2>개선 사항</h2>
+            <ul>
+                <li><strong>크기 축소:</strong> 200px → 180px (데스크톱)</li>
+                <li><strong>위치 조정:</strong> left: 20px → 15px</li>
+                <li><strong>시각화 폭 축소:</strong> 48px → 40px</li>
+                <li><strong>패딩 조정:</strong> 12px → 10px</li>
+                <li><strong>콘텐츠 하단 여백:</strong> 120px 추가</li>
+            </ul>
+        </div>
+
+        <div class="content-box">
+            <h2>반응형 디자인</h2>
+            <ul>
+                <li><strong>1280px 이상:</strong> 200px 폭</li>
+                <li><strong>1024px~1279px:</strong> 180px 폭</li>
+                <li><strong>768px 미만:</strong> 모바일 최적화 180px 최대</li>
+            </ul>
+        </div>
+
+        <p>이 테스트 페이지에서 미니플레이어가 왼쪽 하단에 나타나며, 콘텐츠와 적절한 간격을 유지하는지 확인하세요.</p>
+
+        <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.</p>
+
+        <p>Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
+
+        <div class="content-box">
+            <h2>확인할 포인트</h2>
+            <ol>
+                <li>미니플레이어가 왼쪽 하단에서 15px 떨어져 있는가?</li>
+                <li>플레이어 폭이 180px로 줄어들어 더 컴팩트해졌는가?</li>
+                <li>콘텐츠 하단과 플레이어 사이에 충분한 공간이 있는가?</li>
+                <li>모바일에서도 적절한 간격이 유지되는가?</li>
+            </ol>
+        </div>
+    </div>
+
+    <!-- 미니플레이어 테스트 요소 -->
+    <div id="persistent-mini-player" class="persistent-player">
+        <div class="persistent-player-content">
+            <div class="persistent-header">
+                <button class="persistent-minimize-btn" title="최소화">−</button>
+                <button class="persistent-close-btn" title="닫기">×</button>
+            </div>
+            <div class="persistent-controls">
+                <button class="persistent-play-btn">
+                    <div class="persistent-play-icon"></div>
+                </button>
+                <div class="persistent-info">
+                    <div class="persistent-title">테스트 트랙</div>
+                    <div class="persistent-time">0:00/3:30</div>
+                </div>
+                <div class="persistent-visualizer">
+                    <div class="persistent-bar" style="height: 30%"></div>
+                    <div class="persistent-bar" style="height: 60%"></div>
+                    <div class="persistent-bar" style="height: 45%"></div>
+                    <div class="persistent-bar" style="height: 80%"></div>
+                    <div class="persistent-bar" style="height: 35%"></div>
+                    <div class="persistent-bar" style="height: 70%"></div>
+                    <div class="persistent-bar" style="height: 55%"></div>
+                    <div class="persistent-bar" style="height: 40%"></div>
+                    <div class="persistent-bar" style="height: 65%"></div>
+                    <div class="persistent-bar" style="height: 50%"></div>
+                    <div class="persistent-bar" style="height: 75%"></div>
+                    <div class="persistent-bar" style="height: 30%"></div>
+                </div>
+            </div>
+            <div class="persistent-progress-bar">
+                <div class="persistent-progress" style="width: 40%"></div>
+            </div>
+            <div class="persistent-status">재생 중</div>
+        </div>
+    </div>
+
+    <script>
+        // 테스트용 스크립트
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('미니플레이어 간격 테스트 페이지 로드됨');
+
+            const player = document.getElementById('persistent-mini-player');
+            const playBtn = player.querySelector('.persistent-play-btn');
+
+            // 플레이어 크기 정보 출력
+            setTimeout(() => {
+                const rect = player.getBoundingClientRect();
+                console.log('미니플레이어 크기:', {
+                    width: rect.width,
+                    height: rect.height,
+                    left: rect.left,
+                    bottom: window.innerHeight - rect.bottom
+                });
+            }, 100);
+        });
+    </script>
+</body>
+</html>
