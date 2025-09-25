@@ -21,8 +21,9 @@
 {% include analytics.html %}
 {% include /comments-providers/scripts.html %}
 
-<!-- Persistent Audio Player with Service Worker -->
-<script src="{{ '/assets/js/persistent-audio-player.js' | relative_url }}"></script>
+<!-- Global Mini Player - Ultra-fast, Page Independent -->
+<script src="{{ '/assets/js/global-mini-player.js' | relative_url }}"></script>
+<script src="{{ '/assets/js/player-bridge.js' | relative_url }}"></script>
 
 {% if site.after_footer_scripts %}
   {% for script in site.after_footer_scripts %}

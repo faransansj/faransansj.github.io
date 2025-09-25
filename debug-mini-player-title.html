@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>미니플레이어 제목 디버깅</title>
+    <link rel="stylesheet" href="/assets/css/persistent-audio-player.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .debug-panel {
+            background: white;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .debug-info {
+            background: #f0f8ff;
+            padding: 15px;
+            margin: 10px 0;
+            border-left: 4px solid #007acc;
+            border-radius: 4px;
+        }
+        .debug-button {
+            background: #007acc;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            margin: 5px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .debug-button:hover {
+            background: #005a9e;
+        }
+        .error {
+            color: #d32f2f;
+            background: #ffebee;
+            border-left: 4px solid #d32f2f;
+        }
+        .success {
+            color: #2e7d32;
+            background: #e8f5e8;
+            border-left: 4px solid #2e7d32;
+        }
+        pre {
+            background: #f5f5f5;
+            padding: 10px;
+            border-radius: 4px;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="debug-panel">
+        <h1>🔧 미니플레이어 제목 디버깅</h1>
+
+        <div class="debug-info">
+            <h3>디버깅 목표</h3>
+            <p>미니플레이어에서 음악 제목이 표시되지 않는 문제를 진단하고 해결합니다.</p>
+        </div>
+
+        <div class="debug-info">
+            <h3>테스트 제어</h3>
+            <button class="debug-button" onclick="checkPlayerExists()">플레이어 존재 확인</button>
+            <button class="debug-button" onclick="checkTitleElement()">제목 요소 확인</button>
+            <button class="debug-button" onclick="checkTrackData()">트랙 데이터 확인</button>
+            <button class="debug-button" onclick="loadTestTrack()">테스트 트랙 로드</button>
+            <button class="debug-button" onclick="updateTitleManually()">수동 제목 업데이트</button>
+            <button class="debug-button" onclick="checkAllStates()">전체 상태 확인</button>
+        </div>
+
+        <div id="debugOutput" class="debug-info">
+            <h3>디버그 출력</h3>
+            <pre id="outputContent">준비됨... 테스트 버튼을 클릭하세요.</pre>
+        </div>
+
+        <div class="debug-info">
+            <h3>예상 문제 및 해결책</h3>
+            <ul>
+                <li><strong>DOM 요소 누락:</strong> #persistentTitle 요소가 생성되지 않음</li>
+                <li><strong>타이밍 이슈:</strong> 트랙 로드 전에 DOM 업데이트 시도</li>
+                <li><strong>데이터 바인딩:</strong> currentTrack 데이터가 올바르게 설정되지 않음</li>
+                <li><strong>CSS 숨김:</strong> 스타일로 인해 제목이 보이지 않음</li>
+            </ul>
+        </div>
+    </div>
+
+    <script src="/assets/js/persistent-audio-player.js"></script>
+    <script>
+        function log(message, type = 'info') {
+            const output = document.getElementById('outputContent');
+            const timestamp = new Date().toLocaleTimeString();
+            const logEntry = `[${timestamp}] ${message}`;
+            output.textContent += '\n' + logEntry;
+
+            const panel = document.getElementById('debugOutput');
+            if (type === 'error') {
+                panel.className = 'debug-info error';
+            } else if (type === 'success') {
+                panel.className = 'debug-info success';
+            } else {
+                panel.className = 'debug-info';
+            }
+
+            console.log(logEntry);
+        }
+
+        function clearLog() {
+            document.getElementById('outputContent').textContent = '';
+            document.getElementById('debugOutput').className = 'debug-info';
+        }
+
+        function checkPlayerExists() {
+            clearLog();
+            log('=== 플레이어 존재 확인 ===');
+
+            const globalPlayer = window.persistentAudioPlayer;
+            log(`window.persistentAudioPlayer: ${!!globalPlayer}`);
+
+            if (globalPlayer) {
+                log(`플레이어 초기화됨: ${globalPlayer.isInitialized}`);
+                log(`미니플레이어 요소: ${!!globalPlayer.miniPlayerElement}`);
+                log(`currentTrack: ${!!globalPlayer.currentTrack}`, 'success');
+            } else {
+                log('플레이어가 초기화되지 않았습니다!', 'error');
+            }
+        }
+
+        function checkTitleElement() {
+            clearLog();
+            log('=== 제목 요소 확인 ===');
+
+            const titleElement = document.querySelector('#persistentTitle');
+            log(`DOM querySelector('#persistentTitle'): ${!!titleElement}`);
+
+            if (titleElement) {
+                log(`제목 텍스트: "${titleElement.textContent}"`);
+                log(`요소 스타일: visible=${titleElement.offsetWidth > 0 && titleElement.offsetHeight > 0}`);
+                log(`computed style: ${getComputedStyle(titleElement).display}`, 'success');
+            } else {
+                log('제목 요소를 찾을 수 없습니다!', 'error');
+
+                // 미니플레이어 전체 확인
+                const miniPlayer = document.querySelector('#persistent-mini-player');
+                log(`미니플레이어 요소: ${!!miniPlayer}`);
+
+                if (miniPlayer) {
+                    log(`미니플레이어 HTML: ${miniPlayer.innerHTML.substring(0, 200)}...`);
+                }
+            }
+        }
+
+        function checkTrackData() {
+            clearLog();
+            log('=== 트랙 데이터 확인 ===');
+
+            const player = window.persistentAudioPlayer;
+            if (player) {
+                log(`currentTrack: ${JSON.stringify(player.currentTrack, null, 2)}`);
+                log(`isPlaying: ${player.isPlaying}`);
+                log(`currentTime: ${player.currentTime}`);
+                log(`duration: ${player.duration}`, 'success');
+            } else {
+                log('플레이어 인스턴스가 없습니다!', 'error');
+            }
+        }
+
+        function loadTestTrack() {
+            clearLog();
+            log('=== 테스트 트랙 로드 ===');
+
+            const player = window.persistentAudioPlayer;
+            if (player) {
+                const testTrack = {
+                    src: '/assets/audio/STUDY_WITH_MIKU-part3.mp3',
+                    title: '🎵 디버그 테스트 트랙'
+                };
+
+                log(`테스트 트랙 로딩: ${testTrack.title}`);
+                player.loadTrack(testTrack, false)
+                    .then(() => {
+                        log('트랙 로드 성공!', 'success');
+                        setTimeout(() => {
+                            checkTitleElement();
+                        }, 1000);
+                    })
+                    .catch(error => {
+                        log(`트랙 로드 실패: ${error.message}`, 'error');
+                    });
+            } else {
+                log('플레이어가 초기화되지 않았습니다!', 'error');
+            }
+        }
+
+        function updateTitleManually() {
+            clearLog();
+            log('=== 수동 제목 업데이트 ===');
+
+            const player = window.persistentAudioPlayer;
+            const titleElement = document.querySelector('#persistentTitle');
+
+            if (player && titleElement) {
+                const testTitle = '🔧 수동 업데이트된 제목';
+                titleElement.textContent = testTitle;
+                log(`수동으로 제목 업데이트: "${testTitle}"`, 'success');
+
+                // 플레이어의 updateMiniPlayerInfo도 호출
+                if (player.currentTrack) {
+                    player.currentTrack.title = testTitle;
+                    player.updateMiniPlayerInfo();
+                    log('플레이어 updateMiniPlayerInfo() 호출됨');
+                }
+            } else {
+                log(`플레이어: ${!!player}, 제목요소: ${!!titleElement}`, 'error');
+            }
+        }
+
+        function checkAllStates() {
+            clearLog();
+            log('=== 전체 상태 점검 ===');
+
+            // 1. 플레이어 상태
+            const player = window.persistentAudioPlayer;
+            log(`1. 플레이어 존재: ${!!player}`);
+
+            // 2. DOM 상태
+            const miniPlayer = document.querySelector('#persistent-mini-player');
+            const titleElement = document.querySelector('#persistentTitle');
+            log(`2. 미니플레이어 DOM: ${!!miniPlayer}`);
+            log(`3. 제목 요소 DOM: ${!!titleElement}`);
+
+            // 3. 데이터 상태
+            if (player) {
+                log(`4. currentTrack: ${!!player.currentTrack}`);
+                if (player.currentTrack) {
+                    log(`5. 트랙 제목: "${player.currentTrack.title}"`);
+                }
+            }
+
+            // 4. CSS 상태
+            if (titleElement) {
+                const styles = getComputedStyle(titleElement);
+                log(`6. CSS display: ${styles.display}`);
+                log(`7. CSS visibility: ${styles.visibility}`);
+                log(`8. CSS fontSize: ${styles.fontSize}`);
+                log(`9. CSS color: ${styles.color}`);
+                log(`10. 실제 크기: ${titleElement.offsetWidth}x${titleElement.offsetHeight}`);
+            }
+
+            log('=== 전체 점검 완료 ===', 'success');
+        }
+
+        // 페이지 로드 시 자동 확인
+        window.addEventListener('load', function() {
+            setTimeout(() => {
+                log('페이지 로드 완료 - 자동 점검 시작');
+                checkAllStates();
+            }, 2000);
+        });
+    </script>
+</body>
+</html>
