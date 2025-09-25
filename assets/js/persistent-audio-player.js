@@ -22,6 +22,11 @@ class PersistentAudioPlayer {
         this.audioContext = null;
         this.gainNode = null;
 
+        // Autoplay enhancement flags
+        this.hasUserGesture = false;
+        this.attemptedAutoplay = false;
+        this.continuityActive = false;
+
         // Visualization data
         this.visualizerData = {
             bars: [],
@@ -189,13 +194,18 @@ class PersistentAudioPlayer {
             this.seekTo(newTime);
         });
 
+        // User gesture detection for autoplay
+        this.setupUserGestureDetection();
+
         // Handle page navigation
         window.addEventListener('beforeunload', () => {
             this.saveState();
+            this.continuityActive = this.isPlaying;
         });
 
         window.addEventListener('pagehide', () => {
             this.saveState();
+            this.continuityActive = this.isPlaying;
         });
 
         // Enable resume on focus (for cross-page continuity)
@@ -217,15 +227,22 @@ class PersistentAudioPlayer {
         window.addEventListener('pageshow', (event) => {
             console.log('📄 Page show event - persisted:', event.persisted);
             setTimeout(() => {
-                this.handlePageNavigation();
-            }, 100);
+                this.handlePageNavigation(event.persisted);
+            }, 50);
         });
 
         // Handle back/forward navigation with browser cache
         window.addEventListener('popstate', () => {
             setTimeout(() => {
-                this.handlePageNavigation();
-            }, 100);
+                this.handlePageNavigation(false);
+            }, 50);
+        });
+
+        // Additional load event for full restore
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                this.attemptSilentAutoplay();
+            }, 200);
         });
     }
 
@@ -247,6 +264,13 @@ class PersistentAudioPlayer {
             this.audio = new Audio(trackInfo.src);
             this.audio.preload = 'metadata';
             this.audio.volume = this.volume;
+
+            // Enable more aggressive autoplay capabilities
+            this.audio.setAttribute('autoplay', '');
+            this.audio.muted = false;
+
+            // Cross-origin support for better compatibility
+            this.audio.crossOrigin = 'anonymous';
 
             // Add event listeners
             this.handleLoadedMetadata = () => {
@@ -274,6 +298,9 @@ class PersistentAudioPlayer {
             if (this.serviceWorker) {
                 await this.sendWorkerMessage('CACHE_AUDIO', { url: trackInfo.src });
             }
+
+            // Setup Media Session for background playback
+            this.setupMediaSession();
 
             this.updateMiniPlayerInfo();
             this.showMiniPlayer();
@@ -306,6 +333,7 @@ class PersistentAudioPlayer {
             this.isPlaying = true;
             this.updatePlayButton();
             this.startVisualization();
+            this.updateMediaSession();
             this.setStatus('Playing');
             this.syncStateToWorker();
 
@@ -324,6 +352,7 @@ class PersistentAudioPlayer {
             this.isPlaying = false;
             this.updatePlayButton();
             this.stopVisualization();
+            this.updateMediaSession();
             this.setStatus('Paused');
             this.syncStateToWorker();
 
@@ -435,6 +464,7 @@ class PersistentAudioPlayer {
         this.updateProgress();
         this.updateTime();
         this.updateMiniPlayerInfo();
+        this.updateMediaSession();
     }
 
     startVisualization() {
@@ -520,6 +550,87 @@ class PersistentAudioPlayer {
         const statusElement = this.miniPlayerElement?.querySelector('#persistentStatus');
         if (statusElement) {
             statusElement.textContent = message;
+        }
+    }
+
+    setupMediaSession() {
+        if ('mediaSession' in navigator && this.currentTrack) {
+            try {
+                navigator.mediaSession.metadata = new MediaMetadata({
+                    title: this.currentTrack.title,
+                    artist: 'Study Music',
+                    album: 'Background Music',
+                    artwork: [
+                        { src: '/favicon.ico', sizes: '96x96', type: 'image/png' }
+                    ]
+                });
+
+                // Set action handlers for media keys
+                navigator.mediaSession.setActionHandler('play', () => {
+                    console.log('🎮 Media Session: Play');
+                    this.play();
+                });
+
+                navigator.mediaSession.setActionHandler('pause', () => {
+                    console.log('🎮 Media Session: Pause');
+                    this.pause();
+                });
+
+                navigator.mediaSession.setActionHandler('previoustrack', () => {
+                    console.log('🎮 Media Session: Previous');
+                    // Restart current track
+                    this.seekTo(0);
+                });
+
+                navigator.mediaSession.setActionHandler('nexttrack', () => {
+                    console.log('🎮 Media Session: Next');
+                    // Could implement playlist functionality here
+                    this.seekTo(0);
+                });
+
+                navigator.mediaSession.setActionHandler('seekbackward', (details) => {
+                    const skipTime = details.seekOffset || 10;
+                    this.seekTo(Math.max(0, this.currentTime - skipTime));
+                });
+
+                navigator.mediaSession.setActionHandler('seekforward', (details) => {
+                    const skipTime = details.seekOffset || 10;
+                    this.seekTo(Math.min(this.duration, this.currentTime + skipTime));
+                });
+
+                navigator.mediaSession.setActionHandler('seekto', (details) => {
+                    if (details.seekTime) {
+                        this.seekTo(details.seekTime);
+                    }
+                });
+
+                console.log('🎮 Media Session API configured');
+
+                // Update playback state
+                navigator.mediaSession.playbackState = this.isPlaying ? 'playing' : 'paused';
+
+            } catch (error) {
+                console.log('Media Session setup failed:', error);
+            }
+        }
+    }
+
+    updateMediaSession() {
+        if ('mediaSession' in navigator) {
+            try {
+                navigator.mediaSession.playbackState = this.isPlaying ? 'playing' : 'paused';
+
+                // Update position state
+                if (this.duration > 0) {
+                    navigator.mediaSession.setPositionState({
+                        duration: this.duration,
+                        playbackRate: 1,
+                        position: this.currentTime
+                    });
+                }
+            } catch (error) {
+                console.log('Media Session update failed:', error);
+            }
         }
     }
 
@@ -683,38 +794,170 @@ class PersistentAudioPlayer {
         localStorage.removeItem('persistentAudioBackup');
     }
 
-    async handlePageNavigation() {
-        console.log('🔄 Handling page navigation...');
+    setupUserGestureDetection() {
+        // Detect any user gesture to enable autoplay
+        const gestureEvents = ['click', 'touchstart', 'keydown', 'mousedown'];
 
-        // Show visual indication of continuity
-        if (this.currentTrack) {
-            const titleElement = this.miniPlayerElement?.querySelector('#persistentTitle');
-            if (titleElement) {
-                const originalTitle = titleElement.textContent;
-                const wasPlaying = await this.checkIfWasPlaying();
+        const gestureHandler = () => {
+            if (!this.hasUserGesture) {
+                this.hasUserGesture = true;
+                console.log('✅ User gesture detected - autoplay enabled');
 
-                if (wasPlaying) {
-                    titleElement.innerHTML = '▶️ <span style="color: #2563eb;">클릭하여 계속 재생</span>';
-                    titleElement.style.cursor = 'pointer';
-                    titleElement.style.fontSize = '12px';
+                // Store gesture permission globally
+                sessionStorage.setItem('userGestureGranted', 'true');
 
-                    const resumeHandler = async () => {
-                        await this.smartResume();
-                        titleElement.textContent = originalTitle;
-                        titleElement.style.cursor = 'default';
-                        titleElement.style.fontSize = '13px';
-                    };
+                // Try to activate audio context if available
+                this.activateAudioContext();
+            }
+        };
 
-                    titleElement.removeEventListener('click', resumeHandler);
-                    titleElement.addEventListener('click', resumeHandler, { once: true });
+        gestureEvents.forEach(event => {
+            document.addEventListener(event, gestureHandler, { once: true, passive: true });
+        });
 
-                    this.setStatus('준비됨 - 클릭하여 재생');
+        // Check if gesture was already granted
+        if (sessionStorage.getItem('userGestureGranted') === 'true') {
+            this.hasUserGesture = true;
+        }
+    }
+
+    async activateAudioContext() {
+        try {
+            if (!this.audioContext) {
+                this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            }
+
+            if (this.audioContext.state === 'suspended') {
+                await this.audioContext.resume();
+                console.log('🎵 Audio context activated');
+            }
+        } catch (error) {
+            console.log('Audio context activation failed:', error);
+        }
+    }
+
+    async handlePageNavigation(fromCache = false) {
+        console.log('🔄 Handling page navigation...', { fromCache, hasUserGesture: this.hasUserGesture });
+
+        // Attempt automatic resume first
+        const wasPlaying = await this.checkIfWasPlaying();
+
+        if (wasPlaying) {
+            // Try silent autoplay if we have user gesture
+            const autoplaySuccess = await this.attemptSilentAutoplay();
+
+            if (!autoplaySuccess) {
+                // Fallback to visual prompt
+                this.showResumePrompt();
+            }
+        } else {
+            // Just restore without prompting
+            await this.smartResume();
+        }
+    }
+
+    async attemptSilentAutoplay() {
+        try {
+            console.log('🤫 Attempting silent autoplay...', {
+                hasUserGesture: this.hasUserGesture,
+                continuityActive: this.continuityActive
+            });
+
+            // Get state from storage
+            let resumeState = null;
+
+            if (this.serviceWorker) {
+                try {
+                    const workerState = await this.sendWorkerMessage('GET_STATE');
+                    if (workerState.state && workerState.state.trackInfo) {
+                        resumeState = workerState.state;
+                    }
+                } catch (error) {
+                    console.log('Service Worker not available for autoplay');
                 }
             }
-        }
 
-        // Attempt smart restore
-        await this.smartResume();
+            if (!resumeState) {
+                const savedState = sessionStorage.getItem('persistentAudioState') ||
+                                 localStorage.getItem('persistentAudioBackup');
+                if (savedState) {
+                    resumeState = JSON.parse(savedState);
+                }
+            }
+
+            if (!resumeState || !resumeState.isPlaying) {
+                return false;
+            }
+
+            // Load track if needed
+            if (!this.currentTrack || this.currentTrack.src !== resumeState.trackInfo.src) {
+                await this.loadTrack(resumeState.trackInfo, false);
+            }
+
+            // Calculate resume time
+            const timeDiff = (Date.now() - resumeState.timestamp) / 1000;
+            let resumeTime = resumeState.currentTime;
+
+            if (resumeState.isPlaying) {
+                resumeTime += timeDiff;
+            }
+
+            // Set audio time
+            if (this.audio && resumeTime < this.duration && resumeTime > 0) {
+                this.audio.currentTime = resumeTime;
+                this.currentTime = resumeTime;
+            }
+
+            // Try to play automatically
+            if (this.audio) {
+                try {
+                    // Multiple strategies for autoplay
+                    const playPromise = this.audio.play();
+
+                    if (playPromise !== undefined) {
+                        await playPromise;
+
+                        // Success!
+                        this.isPlaying = true;
+                        this.updatePlayButton();
+                        this.startVisualization();
+                        this.updateMediaSession();
+                        this.setStatus('재생 중');
+                        this.syncStateToWorker();
+
+                        console.log('✅ Silent autoplay successful!');
+                        return true;
+                    }
+                } catch (playError) {
+                    console.log('Silent autoplay failed:', playError.message);
+
+                    // Try with brief mute/unmute trick
+                    if (playError.name === 'NotAllowedError') {
+                        try {
+                            this.audio.muted = true;
+                            await this.audio.play();
+                            this.audio.muted = false;
+
+                            this.isPlaying = true;
+                            this.updatePlayButton();
+                            this.startVisualization();
+                            this.updateMediaSession();
+                            this.setStatus('재생 중');
+
+                            console.log('✅ Autoplay with mute trick successful!');
+                            return true;
+                        } catch (muteError) {
+                            console.log('Mute trick also failed:', muteError.message);
+                        }
+                    }
+                }
+            }
+
+            return false;
+        } catch (error) {
+            console.log('Silent autoplay error:', error);
+            return false;
+        }
     }
 
     async checkIfWasPlaying() {
