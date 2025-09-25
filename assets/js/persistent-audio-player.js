@@ -202,15 +202,30 @@ class PersistentAudioPlayer {
         window.addEventListener('focus', () => {
             setTimeout(() => {
                 this.attemptAutoResume();
-            }, 500);
+            }, 100);
         });
 
         document.addEventListener('visibilitychange', () => {
             if (!document.hidden) {
                 setTimeout(() => {
                     this.attemptAutoResume();
-                }, 500);
+                }, 100);
             }
+        });
+
+        // Enhanced cross-page navigation handlers
+        window.addEventListener('pageshow', (event) => {
+            console.log('📄 Page show event - persisted:', event.persisted);
+            setTimeout(() => {
+                this.handlePageNavigation();
+            }, 100);
+        });
+
+        // Handle back/forward navigation with browser cache
+        window.addEventListener('popstate', () => {
+            setTimeout(() => {
+                this.handlePageNavigation();
+            }, 100);
         });
     }
 
@@ -404,8 +419,14 @@ class PersistentAudioPlayer {
 
     updateMiniPlayerInfo() {
         const titleElement = this.miniPlayerElement?.querySelector('#persistentTitle');
-        if (titleElement && this.currentTrack) {
-            titleElement.textContent = this.currentTrack.title || 'Unknown Track';
+        if (titleElement) {
+            if (this.currentTrack && this.currentTrack.title) {
+                titleElement.textContent = this.currentTrack.title;
+            } else {
+                titleElement.textContent = 'No track loaded';
+            }
+        } else {
+            console.warn('Title element #persistentTitle not found');
         }
     }
 
@@ -413,6 +434,7 @@ class PersistentAudioPlayer {
         this.updatePlayButton();
         this.updateProgress();
         this.updateTime();
+        this.updateMiniPlayerInfo();
     }
 
     startVisualization() {
@@ -525,35 +547,27 @@ class PersistentAudioPlayer {
     }
 
     async restoreState() {
-        // Try to get state from Service Worker first
+        console.log('🔄 Starting state restoration...');
+
+        // Enhanced state restoration with better user experience
+        await this.performSmartRestore();
+
+        // If no state found, initialize default track
+        if (!this.currentTrack) {
+            this.initializeDefaultTrack();
+        }
+    }
+
+    async performSmartRestore() {
+        let restoreState = null;
+
+        // Try Service Worker first
         if (this.serviceWorker) {
             try {
                 const workerState = await this.sendWorkerMessage('GET_STATE');
                 if (workerState.state && workerState.state.trackInfo) {
-                    console.log('🔄 Restoring from Service Worker:', workerState.state.trackInfo.title);
-                    await this.loadTrack(workerState.state.trackInfo, false);
-
-                    if (this.audio) {
-                        this.audio.currentTime = workerState.state.currentTime || 0;
-                    }
-                    this.currentTime = workerState.state.currentTime || 0;
-                    this.volume = workerState.state.volume || 1;
-
-                    if (workerState.state.isPlaying) {
-                        this.setStatus('Click to resume');
-                        const titleElement = this.miniPlayerElement?.querySelector('#persistentTitle');
-                        if (titleElement) {
-                            const originalTitle = titleElement.textContent;
-                            titleElement.textContent = '▶️ Click to resume';
-                            titleElement.style.cursor = 'pointer';
-                            titleElement.addEventListener('click', () => {
-                                this.play(this.currentTime);
-                                titleElement.textContent = originalTitle;
-                                titleElement.style.cursor = 'default';
-                            }, { once: true });
-                        }
-                    }
-                    return;
+                    restoreState = workerState.state;
+                    console.log('🔄 Found Service Worker state:', restoreState.trackInfo.title);
                 }
             } catch (error) {
                 console.log('Service Worker state not available, trying local storage');
@@ -561,50 +575,90 @@ class PersistentAudioPlayer {
         }
 
         // Fallback to local storage
-        let savedState = sessionStorage.getItem('persistentAudioState');
-        if (!savedState) {
-            savedState = localStorage.getItem('persistentAudioBackup');
+        if (!restoreState) {
+            const savedState = sessionStorage.getItem('persistentAudioState') ||
+                              localStorage.getItem('persistentAudioBackup');
+            if (savedState) {
+                try {
+                    restoreState = JSON.parse(savedState);
+                    console.log('🔄 Found local storage state:', restoreState.trackInfo?.title);
+                } catch (error) {
+                    console.error('Failed to parse saved state:', error);
+                }
+            }
         }
 
-        if (savedState) {
-            try {
-                const state = JSON.parse(savedState);
-                console.log('🔄 Restoring audio state:', state.trackInfo?.title);
+        if (restoreState && restoreState.trackInfo) {
+            await this.loadTrack(restoreState.trackInfo, false);
 
-                if (state.trackInfo) {
-                    await this.loadTrack(state.trackInfo, false);
-                    if (this.audio) {
-                        this.audio.currentTime = state.currentTime || 0;
-                    }
-                    this.currentTime = state.currentTime || 0;
-                    this.volume = state.volume || 1;
-                    this.isMinimized = state.isMinimized || false;
+            // Calculate time progression if was playing
+            const timeSinceUpdate = (Date.now() - restoreState.timestamp) / 1000;
+            let resumeTime = restoreState.currentTime || 0;
 
-                    if (state.isPlaying) {
-                        this.setStatus('Click to resume');
-                        const titleElement = this.miniPlayerElement?.querySelector('#persistentTitle');
-                        if (titleElement) {
-                            const originalTitle = titleElement.textContent;
-                            titleElement.textContent = '▶️ Click to resume';
-                            titleElement.style.cursor = 'pointer';
-                            titleElement.addEventListener('click', () => {
-                                this.play(this.currentTime);
-                                titleElement.textContent = originalTitle;
-                                titleElement.style.cursor = 'default';
-                            }, { once: true });
-                        }
-                    }
-
-                    if (this.isMinimized) {
-                        this.toggleMinimize();
-                    }
-                }
-            } catch (error) {
-                console.error('Failed to restore state:', error);
+            if (restoreState.isPlaying && timeSinceUpdate < 10) { // Only if recent
+                resumeTime += timeSinceUpdate;
             }
-        } else {
-            // Load default track on homepage
-            this.initializeDefaultTrack();
+
+            if (this.audio && resumeTime < this.duration && resumeTime > 0) {
+                this.audio.currentTime = resumeTime;
+                this.currentTime = resumeTime;
+            }
+
+            this.volume = restoreState.volume || 1;
+            this.isMinimized = restoreState.isMinimized || false;
+
+            // Show resume option if was playing recently
+            if (restoreState.isPlaying && timeSinceUpdate < 10) {
+                this.showResumePrompt();
+            }
+
+            if (this.isMinimized) {
+                this.toggleMinimize();
+            }
+
+            this.updateUI();
+        }
+    }
+
+    showResumePrompt() {
+        this.setStatus('계속 재생하려면 클릭');
+        const titleElement = this.miniPlayerElement?.querySelector('#persistentTitle');
+
+        if (titleElement) {
+            const originalTitle = titleElement.textContent;
+            titleElement.innerHTML = `
+                <span style="color: #2563eb; font-weight: 500;">
+                    ▶️ ${originalTitle}
+                </span>
+            `;
+            titleElement.style.cursor = 'pointer';
+            titleElement.title = '클릭하여 계속 재생';
+
+            const resumeHandler = async () => {
+                await this.play(this.currentTime);
+                titleElement.innerHTML = originalTitle;
+                titleElement.style.cursor = 'default';
+                titleElement.title = '';
+                this.setStatus('재생 중');
+            };
+
+            titleElement.removeEventListener('click', resumeHandler);
+            titleElement.addEventListener('click', resumeHandler, { once: true });
+
+            // Also make play button more prominent
+            const playBtn = this.miniPlayerElement?.querySelector('#persistentPlayBtn');
+            if (playBtn) {
+                playBtn.style.background = '#2563eb';
+                playBtn.style.transform = 'scale(1.1)';
+
+                const resetPlayBtn = () => {
+                    playBtn.style.background = '#9ca3af';
+                    playBtn.style.transform = 'scale(1)';
+                };
+
+                playBtn.addEventListener('click', resetPlayBtn, { once: true });
+                titleElement.addEventListener('click', resetPlayBtn, { once: true });
+            }
         }
     }
 
@@ -629,26 +683,116 @@ class PersistentAudioPlayer {
         localStorage.removeItem('persistentAudioBackup');
     }
 
-    async attemptAutoResume() {
-        // Check if we should auto-resume from Service Worker state
-        if (this.serviceWorker && this.currentTrack && !this.isPlaying) {
-            try {
-                const workerState = await this.sendWorkerMessage('GET_STATE');
-                if (workerState.state && workerState.state.isPlaying) {
-                    console.log('🔄 Auto-resuming from Service Worker state');
+    async handlePageNavigation() {
+        console.log('🔄 Handling page navigation...');
 
-                    // Update time from worker state
-                    const timeDiff = (Date.now() - workerState.state.timestamp) / 1000;
-                    const resumeTime = workerState.state.currentTime + timeDiff;
+        // Show visual indication of continuity
+        if (this.currentTrack) {
+            const titleElement = this.miniPlayerElement?.querySelector('#persistentTitle');
+            if (titleElement) {
+                const originalTitle = titleElement.textContent;
+                const wasPlaying = await this.checkIfWasPlaying();
 
-                    if (this.audio && resumeTime < this.duration) {
-                        await this.play(resumeTime);
-                    }
+                if (wasPlaying) {
+                    titleElement.innerHTML = '▶️ <span style="color: #2563eb;">클릭하여 계속 재생</span>';
+                    titleElement.style.cursor = 'pointer';
+                    titleElement.style.fontSize = '12px';
+
+                    const resumeHandler = async () => {
+                        await this.smartResume();
+                        titleElement.textContent = originalTitle;
+                        titleElement.style.cursor = 'default';
+                        titleElement.style.fontSize = '13px';
+                    };
+
+                    titleElement.removeEventListener('click', resumeHandler);
+                    titleElement.addEventListener('click', resumeHandler, { once: true });
+
+                    this.setStatus('준비됨 - 클릭하여 재생');
                 }
-            } catch (error) {
-                console.log('Auto-resume failed:', error);
             }
         }
+
+        // Attempt smart restore
+        await this.smartResume();
+    }
+
+    async checkIfWasPlaying() {
+        try {
+            if (this.serviceWorker) {
+                const workerState = await this.sendWorkerMessage('GET_STATE');
+                if (workerState.state) {
+                    const timeSinceUpdate = (Date.now() - workerState.state.timestamp) / 1000;
+                    return workerState.state.isPlaying && timeSinceUpdate < 5; // Recent playing state
+                }
+            }
+        } catch (error) {
+            console.log('Could not check playing state:', error);
+        }
+
+        // Fallback to local storage
+        const savedState = sessionStorage.getItem('persistentAudioState') ||
+                          localStorage.getItem('persistentAudioBackup');
+        if (savedState) {
+            const state = JSON.parse(savedState);
+            const timeSinceUpdate = (Date.now() - state.timestamp) / 1000;
+            return state.isPlaying && timeSinceUpdate < 5;
+        }
+
+        return false;
+    }
+
+    async smartResume() {
+        try {
+            // Get the most accurate state
+            let resumeState = null;
+
+            if (this.serviceWorker) {
+                const workerState = await this.sendWorkerMessage('GET_STATE');
+                if (workerState.state && workerState.state.trackInfo) {
+                    resumeState = workerState.state;
+                }
+            }
+
+            if (!resumeState) {
+                const savedState = sessionStorage.getItem('persistentAudioState') ||
+                                 localStorage.getItem('persistentAudioBackup');
+                if (savedState) {
+                    resumeState = JSON.parse(savedState);
+                }
+            }
+
+            if (resumeState && resumeState.trackInfo) {
+                // Calculate estimated current time
+                const timeDiff = (Date.now() - resumeState.timestamp) / 1000;
+                let estimatedTime = resumeState.currentTime;
+
+                if (resumeState.isPlaying) {
+                    estimatedTime += timeDiff;
+                }
+
+                console.log(`🎵 Smart resuming: ${resumeState.trackInfo.title} at ${estimatedTime.toFixed(1)}s`);
+
+                // Load track if different
+                if (!this.currentTrack || this.currentTrack.src !== resumeState.trackInfo.src) {
+                    await this.loadTrack(resumeState.trackInfo, false);
+                }
+
+                // Set time
+                if (this.audio && estimatedTime < this.duration && estimatedTime > 0) {
+                    this.audio.currentTime = estimatedTime;
+                    this.currentTime = estimatedTime;
+                    this.updateUI();
+                }
+            }
+        } catch (error) {
+            console.log('Smart resume failed:', error);
+        }
+    }
+
+    async attemptAutoResume() {
+        // Try smarter resume logic
+        await this.smartResume();
     }
 
     // Public API
