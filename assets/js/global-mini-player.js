@@ -504,7 +504,7 @@ class GlobalMiniPlayer {
                 position: fixed;
                 bottom: 20px;
                 left: 20px;
-                width: 280px;
+                width: 240px;
                 background: rgba(255, 255, 255, 0.95);
                 backdrop-filter: blur(10px);
                 border-radius: 12px;
@@ -668,13 +668,13 @@ class GlobalMiniPlayer {
 
             @media (min-width: 1024px) {
                 .global-player {
-                    width: 320px;
+                    width: 260px;
                 }
             }
 
             @media (min-width: 1280px) {
                 .global-player {
-                    width: 360px;
+                    width: 280px;
                 }
             }
 
@@ -683,7 +683,7 @@ class GlobalMiniPlayer {
                     left: 10px;
                     bottom: 10px;
                     width: calc(100% - 20px);
-                    max-width: 280px;
+                    max-width: 240px;
                 }
                 .gmp-visualizer {
                     width: 36px;
