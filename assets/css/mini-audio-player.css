@@ -7,7 +7,7 @@
     position: fixed;
     bottom: 20px;
     left: 20px;
-    width: 240px; /* Optimized width for better page harmony */
+    width: 200px; /* Compact size to prevent page intrusion */
     background: white;
     border-radius: 12px;
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
@@ -26,7 +26,7 @@
 }
 
 .mini-player-content {
-    padding: 16px;
+    padding: 12px;
     position: relative;
 }
 
@@ -197,16 +197,16 @@
 
 /* Responsive adjustments to match Jekyll theme sidebar widths */
 @media (min-width: 1024px) {
-    /* Large screens: balanced width for page harmony */
+    /* Large screens: compact design for better UX */
     .mini-player {
-        width: 260px;
+        width: 220px;
     }
 }
 
 @media (min-width: 1280px) {
-    /* X-large screens: optimized width without page intrusion */
+    /* X-large screens: maximized while avoiding intrusion */
     .mini-player {
-        width: 280px;
+        width: 240px;
     }
 }
 
@@ -215,7 +215,7 @@
         left: 10px;
         bottom: 10px;
         width: calc(100% - 20px);
-        max-width: 240px;
+        max-width: 200px;
     }
 
     .mini-visualizer {

@@ -504,7 +504,7 @@ class GlobalMiniPlayer {
                 position: fixed;
                 bottom: 20px;
                 left: 20px;
-                width: 240px;
+                width: 200px;
                 background: rgba(255, 255, 255, 0.95);
                 backdrop-filter: blur(10px);
                 border-radius: 12px;
@@ -527,7 +527,7 @@ class GlobalMiniPlayer {
             }
 
             .gmp-content {
-                padding: 16px;
+                padding: 12px;
                 position: relative;
             }
 
@@ -668,13 +668,13 @@ class GlobalMiniPlayer {
 
             @media (min-width: 1024px) {
                 .global-player {
-                    width: 260px;
+                    width: 220px;
                 }
             }
 
             @media (min-width: 1280px) {
                 .global-player {
-                    width: 280px;
+                    width: 240px;
                 }
             }
 
@@ -683,7 +683,7 @@ class GlobalMiniPlayer {
                     left: 10px;
                     bottom: 10px;
                     width: calc(100% - 20px);
-                    max-width: 240px;
+                    max-width: 200px;
                 }
                 .gmp-visualizer {
                     width: 36px;
