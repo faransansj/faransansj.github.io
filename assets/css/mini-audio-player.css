@@ -7,7 +7,7 @@
     position: fixed;
     bottom: 20px;
     left: 20px;
-    width: 200px; /* Match narrow sidebar width */
+    width: 280px; /* Increased width for better design */
     background: white;
     border-radius: 12px;
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
@@ -26,23 +26,23 @@
 }
 
 .mini-player-content {
-    padding: 12px;
+    padding: 16px;
     position: relative;
 }
 
 .mini-controls {
     display: flex;
     align-items: center;
-    gap: 10px;
-    margin-bottom: 8px;
+    gap: 12px;
+    margin-bottom: 10px;
 }
 
 .mini-play-btn {
     background: #9ca3af;
     border: none;
     border-radius: 50%;
-    width: 32px;
-    height: 32px;
+    width: 40px;
+    height: 40px;
     cursor: pointer;
     display: flex;
     align-items: center;
@@ -50,20 +50,22 @@
     transition: all 0.2s;
     padding: 0;
     flex-shrink: 0;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .mini-play-btn:hover {
     background: #6b7280;
-    transform: scale(1.05);
+    transform: scale(1.08);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
 .mini-play-icon {
     width: 0;
     height: 0;
     border-style: solid;
-    border-width: 6px 0 6px 9px;
+    border-width: 8px 0 8px 12px;
     border-color: transparent transparent transparent white;
-    margin-left: 2px;
+    margin-left: 3px;
 }
 
 .mini-pause-icon {
@@ -72,10 +74,10 @@
 }
 
 .mini-pause-icon span {
-    width: 3px;
-    height: 12px;
+    width: 4px;
+    height: 16px;
     background: white;
-    border-radius: 1px;
+    border-radius: 2px;
 }
 
 .mini-info {
@@ -84,52 +86,56 @@
 }
 
 .mini-title {
-    font-size: 13px;
-    font-weight: 500;
+    font-size: 14px;
+    font-weight: 600;
     color: #374151;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    margin-bottom: 2px;
+    margin-bottom: 3px;
+    line-height: 1.3;
 }
 
 .mini-time {
-    font-size: 11px;
+    font-size: 12px;
     color: #9ca3af;
+    font-weight: 500;
 }
 
 .mini-visualizer {
-    width: 48px;
-    height: 24px;
+    width: 56px;
+    height: 28px;
     display: flex;
     align-items: flex-end;
-    gap: 1px;
+    gap: 1.5px;
     flex-shrink: 0;
 }
 
 .mini-bar {
     flex-grow: 1;
-    background: #67e8f9;
+    background: linear-gradient(to top, #06b6d4, #67e8f9);
     transition: height 0.05s ease;
-    min-height: 2px;
-    border-radius: 1px;
+    min-height: 3px;
+    border-radius: 2px;
 }
 
 .mini-progress-bar {
     background: #e5e7eb;
-    height: 3px;
-    border-radius: 1.5px;
+    height: 4px;
+    border-radius: 2px;
     cursor: pointer;
     position: relative;
     width: 100%;
+    margin-top: 2px;
 }
 
 .mini-progress {
-    background: #67e8f9;
+    background: linear-gradient(90deg, #06b6d4 0%, #67e8f9 100%);
     height: 100%;
-    border-radius: 1.5px;
+    border-radius: 2px;
     width: 0%;
     transition: width 0.1s linear;
+    position: relative;
 }
 
 .mini-header {
@@ -191,16 +197,16 @@
 
 /* Responsive adjustments to match Jekyll theme sidebar widths */
 @media (min-width: 1024px) {
-    /* Large screens: match $right-sidebar-width-narrow */
+    /* Large screens: improved width for better design */
     .mini-player {
-        width: 200px;
+        width: 320px;
     }
 }
 
 @media (min-width: 1280px) {
-    /* X-large screens: match $right-sidebar-width */
+    /* X-large screens: optimal width for spacious design */
     .mini-player {
-        width: 250px;
+        width: 360px;
     }
 }
 
@@ -209,7 +215,7 @@
         left: 10px;
         bottom: 10px;
         width: calc(100% - 20px);
-        max-width: 200px;
+        max-width: 280px;
     }
 
     .mini-visualizer {
