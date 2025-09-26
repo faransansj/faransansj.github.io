@@ -503,8 +503,8 @@ class GlobalMiniPlayer {
             .global-player {
                 position: fixed;
                 bottom: 20px;
-                left: 15px;
-                width: 180px;
+                left: 20px;
+                width: 280px;
                 background: rgba(255, 255, 255, 0.95);
                 backdrop-filter: blur(10px);
                 border-radius: 12px;
@@ -527,7 +527,8 @@ class GlobalMiniPlayer {
             }
 
             .gmp-content {
-                padding: 10px;
+                padding: 16px;
+                position: relative;
             }
 
             .gmp-header {
@@ -560,16 +561,17 @@ class GlobalMiniPlayer {
             .gmp-controls {
                 display: flex;
                 align-items: center;
-                gap: 10px;
-                margin-bottom: 8px;
+                gap: 12px;
+                margin-bottom: 10px;
             }
 
             .gmp-play-btn {
                 background: #9ca3af;
                 border: none;
                 border-radius: 50%;
-                width: 32px;
-                height: 32px;
+                width: 40px;
+                height: 40px;
+                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
                 cursor: pointer;
                 display: flex;
                 align-items: center;
@@ -579,16 +581,17 @@ class GlobalMiniPlayer {
 
             .gmp-play-btn:hover {
                 background: #6b7280;
-                transform: scale(1.05);
+                transform: scale(1.08);
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
             }
 
             .gmp-play-icon {
                 width: 0;
                 height: 0;
                 border-style: solid;
-                border-width: 6px 0 6px 9px;
+                border-width: 8px 0 8px 12px;
                 border-color: transparent transparent transparent white;
-                margin-left: 2px;
+                margin-left: 3px;
             }
 
             .gmp-pause-icon {
@@ -663,12 +666,33 @@ class GlobalMiniPlayer {
                 text-align: center;
             }
 
+            @media (min-width: 1024px) {
+                .global-player {
+                    width: 320px;
+                }
+            }
+
+            @media (min-width: 1280px) {
+                .global-player {
+                    width: 360px;
+                }
+            }
+
             @media (max-width: 768px) {
                 .global-player {
                     left: 10px;
                     bottom: 10px;
-                    width: calc(100% - 30px);
-                    max-width: 180px;
+                    width: calc(100% - 20px);
+                    max-width: 280px;
+                }
+                .gmp-visualizer {
+                    width: 36px;
+                }
+                .gmp-title {
+                    font-size: 12px;
+                }
+                .gmp-time {
+                    font-size: 10px;
                 }
             }
 
