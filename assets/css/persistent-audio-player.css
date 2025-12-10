@@ -3,12 +3,13 @@
     position: fixed;
     bottom: 24px;
     left: 24px;
-    width: 280px;
+    width: 220px;
+    /* Reduced to fit sidebar perfectly */
     background: rgba(255, 255, 255, 0.85);
     backdrop-filter: blur(20px) saturate(180%);
     -webkit-backdrop-filter: blur(20px) saturate(180%);
     border-radius: 16px;
-    box-shadow: 
+    box-shadow:
         0 4px 6px -1px rgba(0, 0, 0, 0.1),
         0 2px 4px -1px rgba(0, 0, 0, 0.06),
         0 20px 25px -5px rgba(0, 0, 0, 0.1),
@@ -24,7 +25,7 @@
     content: '';
     position: absolute;
     inset: 0;
-    background: linear-gradient(to bottom right, rgba(255,255,255,0.4), rgba(255,255,255,0.1));
+    background: linear-gradient(to bottom right, rgba(255, 255, 255, 0.4), rgba(255, 255, 255, 0.1));
     pointer-events: none;
     z-index: 0;
 }
@@ -76,41 +77,45 @@
 
 .global-player.minimized .gmp-play-btn:hover {
     transform: none;
-    background: rgba(0,0,0,0.05);
+    background: rgba(0, 0, 0, 0.05);
 }
 
 /* Content Layout */
 .gmp-content {
-    padding: 16px;
+    padding: 12px;
+    /* Reduced padding */
     position: relative;
     z-index: 1;
 }
 
 .gmp-header {
     position: absolute;
-    top: 8px;
-    right: 8px;
+    top: 6px;
+    right: 6px;
     display: flex;
-    gap: 6px;
+    gap: 4px;
     z-index: 10;
 }
 
-.gmp-minimize, .gmp-close {
-    background: rgba(0,0,0,0.05);
+.gmp-minimize,
+.gmp-close {
+    background: rgba(0, 0, 0, 0.05);
     border: none;
-    width: 20px;
-    height: 20px;
+    width: 18px;
+    /* Slightly smaller */
+    height: 18px;
     border-radius: 50%;
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 12px;
+    font-size: 11px;
     color: #6b7280;
     transition: all 0.2s;
 }
 
-.gmp-minimize:hover, .gmp-close:hover {
+.gmp-minimize:hover,
+.gmp-close:hover {
     background: #f3f4f6;
     color: #111827;
     transform: scale(1.1);
@@ -119,18 +124,21 @@
 .gmp-controls {
     display: flex;
     align-items: center;
-    gap: 16px;
-    margin-bottom: 12px;
+    gap: 12px;
+    /* Reduced gap */
+    margin-bottom: 8px;
     margin-top: 4px;
 }
 
 .gmp-play-btn {
-    background: #3b82f6; /* Blue-500 */
+    background: #3b82f6;
+    /* Blue-500 */
     background: linear-gradient(135deg, #3b82f6, #2563eb);
     border: none;
     border-radius: 50%;
-    width: 44px;
-    height: 44px;
+    width: 40px;
+    /* Smaller button */
+    height: 40px;
     box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
     cursor: pointer;
     display: flex;
@@ -153,7 +161,8 @@
     width: 0;
     height: 0;
     border-style: solid;
-    border-width: 7px 0 7px 11px;
+    border-width: 6px 0 6px 10px;
+    /* Adjusted size */
     border-color: transparent transparent transparent white;
     margin-left: 3px;
 }
@@ -165,7 +174,8 @@
 
 .gmp-pause-icon span {
     width: 3px;
-    height: 12px;
+    height: 10px;
+    /* Adjusted size */
     background: white;
     border-radius: 2px;
 }
@@ -176,11 +186,12 @@
     display: flex;
     flex-direction: column;
     justify-content: center;
-    gap: 2px;
+    gap: 1px;
 }
 
 .gmp-title {
-    font-size: 14px;
+    font-size: 13px;
+    /* Slightly smaller */
     font-weight: 600;
     color: #1f2937;
     white-space: nowrap;
@@ -190,7 +201,7 @@
 }
 
 .gmp-time {
-    font-size: 11px;
+    font-size: 10px;
     font-weight: 500;
     color: #6b7280;
     font-variant-numeric: tabular-nums;
@@ -201,8 +212,9 @@
     display: flex;
     align-items: flex-end;
     gap: 2px;
-    width: 32px;
-    height: 20px;
+    width: 28px;
+    /* Slightly smaller */
+    height: 16px;
     opacity: 0.8;
 }
 
@@ -217,13 +229,13 @@
 
 /* Progress Bar */
 .gmp-progress-container {
-    background: rgba(0,0,0,0.06);
+    background: rgba(0, 0, 0, 0.06);
     height: 4px;
     border-radius: 2px;
     cursor: pointer;
     position: relative;
     width: 100%;
-    margin-bottom: 6px;
+    margin-bottom: 4px;
     overflow: hidden;
     transition: height 0.2s;
 }
@@ -248,8 +260,8 @@
     top: 0;
     bottom: 0;
     width: 6px;
-    background: rgba(255,255,255,0.5);
-    box-shadow: 0 0 4px rgba(255,255,255,0.8);
+    background: rgba(255, 255, 255, 0.5);
+    box-shadow: 0 0 4px rgba(255, 255, 255, 0.8);
 }
 
 .gmp-status {
@@ -257,17 +269,18 @@
     font-weight: 500;
     color: #9ca3af;
     text-align: right;
-    display: none; /* Hide status text for cleaner look, visualizer is enough */
+    display: none;
+    /* Hide status text for cleaner look, visualizer is enough */
 }
 
 /* Media Queries */
 @media (max-width: 640px) {
     .global-player {
-        left: 16px; 
+        left: 16px;
         bottom: 16px;
         width: calc(100% - 32px);
         max-width: 360px;
-        backdrop-filter: blur(16px); 
+        backdrop-filter: blur(16px);
     }
 }
 
@@ -276,13 +289,13 @@
     .global-player {
         background: rgba(30, 30, 30, 0.8);
         border: 1px solid rgba(255, 255, 255, 0.1);
-        box-shadow: 
+        box-shadow:
             0 10px 15px -3px rgba(0, 0, 0, 0.4),
             0 4px 6px -2px rgba(0, 0, 0, 0.2);
     }
-    
+
     .global-player::before {
-        background: linear-gradient(to bottom right, rgba(255,255,255,0.05), rgba(255,255,255,0.01));
+        background: linear-gradient(to bottom right, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.01));
     }
 
     .global-player.minimized {
@@ -296,18 +309,78 @@
     .gmp-time {
         color: #9ca3af;
     }
-    
+
     .gmp-progress-container {
-        background: rgba(255,255,255,0.1);
+        background: rgba(255, 255, 255, 0.1);
     }
-    
-    .gmp-minimize, .gmp-close {
-        background: rgba(255,255,255,0.1);
+
+    .gmp-minimize,
+    .gmp-close {
+        background: rgba(255, 255, 255, 0.1);
         color: #9ca3af;
     }
-    
-    .gmp-minimize:hover, .gmp-close:hover {
-        background: rgba(255,255,255,0.2);
+
+    .gmp-minimize:hover,
+    .gmp-close:hover {
+        background: rgba(255, 255, 255, 0.2);
         color: #f3f4f6;
+    }
+}
+
+/* Note Animation Logic */
+.global-player.minimized {
+    overflow: visible !important;
+    /* Allow notes to float out */
+}
+
+.gmp-note-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: -1;
+}
+
+.gmp-note {
+    position: absolute;
+    bottom: 50%;
+    left: 50%;
+    transform: translate(-50%, 50%);
+    color: #3b82f6;
+    font-size: 16px;
+    font-weight: bold;
+    pointer-events: none;
+    animation: floatUp 1.5s ease-out forwards;
+    opacity: 0;
+    z-index: 0;
+}
+
+@keyframes floatUp {
+    0% {
+        transform: translate(-50%, 20%) scale(0.5) rotate(0deg);
+        opacity: 0;
+    }
+
+    20% {
+        opacity: 0.8;
+        transform: translate(-50%, -20%) scale(1) rotate(10deg);
+    }
+
+    50% {
+        transform: translate(calc(-50% + 10px), -60px) scale(1) rotate(-10deg);
+    }
+
+    100% {
+        transform: translate(calc(-50% - 10px), -100px) scale(0.8) rotate(20deg);
+        opacity: 0;
+    }
+}
+
+/* Dark mode note color */
+@media (prefers-color-scheme: dark) {
+    .gmp-note {
+        color: #60a5fa;
     }
 }

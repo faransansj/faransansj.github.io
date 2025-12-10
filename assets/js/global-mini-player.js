@@ -173,15 +173,32 @@ class GlobalMiniPlayer {
     bindEvents() {
         const { playBtn, minimizeBtn, closeBtn, progressContainer } = this.domCache;
 
-        playBtn.addEventListener('click', () => this.togglePlay());
-        minimizeBtn.addEventListener('click', () => this.toggleMinimize());
-        closeBtn.addEventListener('click', () => this.close());
+        playBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            this.togglePlay();
+        });
+        minimizeBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            this.toggleMinimize();
+        });
+        closeBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            this.close();
+        });
 
         progressContainer.addEventListener('click', (e) => {
             if (!this.duration) return;
             const rect = progressContainer.getBoundingClientRect();
             const percentage = (e.clientX - rect.left) / rect.width;
             this.seekTo(percentage * this.duration);
+        });
+
+        // Click on minimized player to expand
+        this.playerElement.addEventListener('click', (e) => {
+            // Only expand if minimized and not clicking on play button
+            if (this.isMinimized && !e.target.closest('.gmp-play-btn')) {
+                this.toggleMinimize();
+            }
         });
 
         // Page navigation events
@@ -276,6 +293,9 @@ class GlobalMiniPlayer {
         this.domCache.title.textContent = trackInfo.title;
         this.domCache.status.textContent = '로드됨';
         this.show();
+
+        // Reset note timer on new track load just in case
+        this.stopNoteAnimation();
     }
 
     async togglePlay() {
@@ -308,8 +328,8 @@ class GlobalMiniPlayer {
                 this.updatePlayButton();
                 this.startVisualizer();
                 this.startUpdates();
-                this.startUpdates();
                 this.domCache.status.textContent = '재생 중';
+                this.checkNoteAnimation();
                 this.saveState();
                 this.log('✅ Playing');
             }
@@ -324,6 +344,7 @@ class GlobalMiniPlayer {
                     this.updatePlayButton();
                     this.startVisualizer();
                     this.domCache.status.textContent = '재생 중';
+                    this.checkNoteAnimation();
                     this.log('✅ Playing (mute trick)');
                 } catch (muteError) {
                     this.showResumeHint();
@@ -342,6 +363,7 @@ class GlobalMiniPlayer {
         this.stopVisualizer();
         this.stopUpdates();
         this.domCache.status.textContent = '일시정지';
+        this.checkNoteAnimation(); // Update animation state
         this.saveState();
     }
 
@@ -492,6 +514,64 @@ class GlobalMiniPlayer {
         this.isMinimized = !this.isMinimized;
         this.playerElement.classList.toggle('minimized', this.isMinimized);
         this.domCache.minimizeBtn.textContent = this.isMinimized ? '+' : '−';
+
+        // Manage note animation visibility
+        this.checkNoteAnimation();
+    }
+
+    checkNoteAnimation() {
+        if (this.isPlaying && this.isMinimized) {
+            this.startNoteAnimation();
+        } else {
+            this.stopNoteAnimation();
+        }
+    }
+
+    startNoteAnimation() {
+        if (this.noteTimer) return;
+
+        // Create note container if it doesn't exist
+        if (!this.noteContainer) {
+            this.noteContainer = document.createElement('div');
+            this.noteContainer.className = 'gmp-note-container';
+            this.playerElement.appendChild(this.noteContainer);
+        }
+
+        const notes = ['♪', '♫', '♬', '♩'];
+
+        this.noteTimer = setInterval(() => {
+            if (!this.isPlaying || !this.isMinimized) {
+                this.stopNoteAnimation();
+                return;
+            }
+
+            const note = document.createElement('div');
+            note.className = 'gmp-note';
+            note.textContent = notes[Math.floor(Math.random() * notes.length)];
+
+            // Random position variation
+            const randomX = (Math.random() - 0.5) * 20; // -10px to 10px
+            note.style.left = `calc(50% + ${randomX}px)`;
+
+            this.noteContainer.appendChild(note);
+
+            // Cleanup after animation
+            setTimeout(() => {
+                note.remove();
+            }, 1500);
+
+        }, 800); // New note every 0.8s
+    }
+
+    stopNoteAnimation() {
+        if (this.noteTimer) {
+            clearInterval(this.noteTimer);
+            this.noteTimer = null;
+        }
+        // Optional: clear existing notes immediately or let them fade out
+        if (this.noteContainer) {
+            this.noteContainer.innerHTML = '';
+        }
     }
 
     // Public API
