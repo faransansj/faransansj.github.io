@@ -18,6 +18,7 @@ class GlobalMiniPlayer {
         this.currentTime = 0;
         this.duration = 0;
         this.volume = 1;
+        this.DEBUG = false; // Set to true for debugging
 
         // UI elements
         this.playerElement = null;
@@ -41,7 +42,7 @@ class GlobalMiniPlayer {
 
     // Immediate initialization without async delays
     initializeImmediate() {
-        console.log('🚀 Global Mini Player - Immediate Init');
+        this.log('🚀 Global Mini Player - Immediate Init');
 
         // Check if already initialized
         if (this.isReady) return;
@@ -58,7 +59,13 @@ class GlobalMiniPlayer {
         // Set ready flag
         this.isReady = true;
 
-        console.log('✅ Global Mini Player Ready');
+        this.log('✅ Global Mini Player Ready');
+    }
+
+    log(...args) {
+        if (this.DEBUG) {
+            console.log(...args);
+        }
     }
 
     setupGestureDetection() {
@@ -67,8 +74,9 @@ class GlobalMiniPlayer {
         const gestureHandler = () => {
             if (!this.hasUserGesture) {
                 this.hasUserGesture = true;
+                this.hasUserGesture = true;
                 sessionStorage.setItem('globalPlayerGesture', 'true');
-                console.log('✅ User gesture captured');
+                this.log('✅ User gesture captured');
 
                 // Remove listeners for performance
                 events.forEach(event => {
@@ -132,8 +140,7 @@ class GlobalMiniPlayer {
             </div>
         `;
 
-        // Inject CSS if not already present
-        this.injectCSS();
+
 
         // Add to DOM
         document.body.appendChild(this.playerElement);
@@ -144,7 +151,7 @@ class GlobalMiniPlayer {
         // Bind events
         this.bindEvents();
 
-        console.log('✅ Player UI created');
+        this.log('✅ Player UI created');
     }
 
     cacheElements() {
@@ -192,7 +199,7 @@ class GlobalMiniPlayer {
     // Fast state restoration without delays
     fastStateRestore() {
         const savedState = sessionStorage.getItem('globalPlayerState') ||
-                          localStorage.getItem('globalPlayerBackup');
+            localStorage.getItem('globalPlayerBackup');
 
         if (!savedState) return;
 
@@ -209,11 +216,17 @@ class GlobalMiniPlayer {
                 }
             }
         } catch (error) {
-            console.log('State restore failed:', error);
+            this.log('State restore failed:', error);
         }
     }
 
     fastRestore() {
+        // Safe restoration: Don't interrupt if already playing
+        if (this.isPlaying && this.audio && !this.audio.paused) {
+            this.log('Already playing, skipping restore');
+            return;
+        }
+
         // Ultra-fast restoration on page show
         if (this.currentTrack && this.hasUserGesture) {
             this.attemptFastResume();
@@ -221,7 +234,7 @@ class GlobalMiniPlayer {
     }
 
     loadTrackFast(trackInfo) {
-        console.log(`🎵 Loading: ${trackInfo.title}`);
+        this.log(`🎵 Loading: ${trackInfo.title}`);
 
         this.currentTrack = trackInfo;
 
@@ -267,7 +280,7 @@ class GlobalMiniPlayer {
 
     async togglePlay() {
         if (!this.audio || !this.currentTrack) {
-            console.log('No track loaded');
+            this.log('No track loaded');
             return;
         }
 
@@ -295,9 +308,10 @@ class GlobalMiniPlayer {
                 this.updatePlayButton();
                 this.startVisualizer();
                 this.startUpdates();
+                this.startUpdates();
                 this.domCache.status.textContent = '재생 중';
                 this.saveState();
-                console.log('✅ Playing');
+                this.log('✅ Playing');
             }
         } catch (error) {
             // Try silent autoplay trick
@@ -310,10 +324,10 @@ class GlobalMiniPlayer {
                     this.updatePlayButton();
                     this.startVisualizer();
                     this.domCache.status.textContent = '재생 중';
-                    console.log('✅ Playing (mute trick)');
+                    this.log('✅ Playing (mute trick)');
                 } catch (muteError) {
                     this.showResumeHint();
-                    console.log('Auto-play blocked, showing manual resume');
+                    this.log('Auto-play blocked, showing manual resume');
                 }
             }
         }
@@ -439,7 +453,7 @@ class GlobalMiniPlayer {
                 }
             }
         } catch (error) {
-            console.log('Fast resume failed:', error);
+            this.log('Fast resume failed:', error);
         }
     }
 
@@ -494,230 +508,11 @@ class GlobalMiniPlayer {
     isCurrentlyPlaying() { return this.isPlaying; }
     getVolume() { return this.volume; }
 
-    injectCSS() {
-        if (document.getElementById('global-mini-player-styles')) return;
 
-        const style = document.createElement('style');
-        style.id = 'global-mini-player-styles';
-        style.textContent = `
-            .global-player {
-                position: fixed;
-                bottom: 20px;
-                left: 20px;
-                width: 200px;
-                background: rgba(255, 255, 255, 0.95);
-                backdrop-filter: blur(10px);
-                border-radius: 12px;
-                box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
-                border: 1px solid rgba(255, 255, 255, 0.2);
-                z-index: 10000;
-                transition: all 0.2s ease;
-                font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
-            }
-
-            .global-player.hidden {
-                transform: translateY(100%);
-                opacity: 0;
-                pointer-events: none;
-            }
-
-            .global-player.minimized .gmp-controls,
-            .global-player.minimized .gmp-progress-container {
-                display: none;
-            }
-
-            .gmp-content {
-                padding: 12px;
-                position: relative;
-            }
-
-            .gmp-header {
-                display: flex;
-                justify-content: flex-end;
-                gap: 4px;
-                margin-bottom: 8px;
-            }
-
-            .gmp-minimize, .gmp-close {
-                background: none;
-                border: none;
-                width: 20px;
-                height: 20px;
-                border-radius: 50%;
-                cursor: pointer;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                font-size: 14px;
-                color: #9ca3af;
-                transition: all 0.2s;
-            }
-
-            .gmp-minimize:hover, .gmp-close:hover {
-                background: #f3f4f6;
-                color: #374151;
-            }
-
-            .gmp-controls {
-                display: flex;
-                align-items: center;
-                gap: 12px;
-                margin-bottom: 10px;
-            }
-
-            .gmp-play-btn {
-                background: #9ca3af;
-                border: none;
-                border-radius: 50%;
-                width: 40px;
-                height: 40px;
-                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-                cursor: pointer;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                transition: all 0.2s;
-            }
-
-            .gmp-play-btn:hover {
-                background: #6b7280;
-                transform: scale(1.08);
-                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-            }
-
-            .gmp-play-icon {
-                width: 0;
-                height: 0;
-                border-style: solid;
-                border-width: 8px 0 8px 12px;
-                border-color: transparent transparent transparent white;
-                margin-left: 3px;
-            }
-
-            .gmp-pause-icon {
-                display: flex;
-                gap: 2px;
-            }
-
-            .gmp-pause-icon span {
-                width: 3px;
-                height: 12px;
-                background: white;
-                border-radius: 1px;
-            }
-
-            .gmp-info {
-                flex-grow: 1;
-                min-width: 0;
-            }
-
-            .gmp-title {
-                font-size: 13px;
-                font-weight: 500;
-                color: #374151;
-                white-space: nowrap;
-                overflow: hidden;
-                text-overflow: ellipsis;
-                margin-bottom: 2px;
-            }
-
-            .gmp-time {
-                font-size: 11px;
-                color: #9ca3af;
-            }
-
-            .gmp-visualizer {
-                display: flex;
-                align-items: flex-end;
-                gap: 1px;
-                width: 40px;
-                height: 24px;
-            }
-
-            .gmp-bar {
-                flex-grow: 1;
-                background: #67e8f9;
-                min-height: 2px;
-                border-radius: 1px;
-                transition: height 0.1s ease;
-            }
-
-            .gmp-progress-container {
-                background: #e5e7eb;
-                height: 3px;
-                border-radius: 1.5px;
-                cursor: pointer;
-                position: relative;
-                width: 100%;
-                margin-bottom: 8px;
-            }
-
-            .gmp-progress {
-                background: #67e8f9;
-                height: 100%;
-                border-radius: 1.5px;
-                width: 0%;
-                transition: width 0.1s linear;
-            }
-
-            .gmp-status {
-                font-size: 10px;
-                color: #9ca3af;
-                text-align: center;
-            }
-
-            @media (min-width: 1024px) {
-                .global-player {
-                    width: 220px;
-                }
-            }
-
-            @media (min-width: 1280px) {
-                .global-player {
-                    width: 240px;
-                }
-            }
-
-            @media (max-width: 768px) {
-                .global-player {
-                    left: 10px;
-                    bottom: 10px;
-                    width: calc(100% - 20px);
-                    max-width: 200px;
-                }
-                .gmp-visualizer {
-                    width: 36px;
-                }
-                .gmp-title {
-                    font-size: 12px;
-                }
-                .gmp-time {
-                    font-size: 10px;
-                }
-            }
-
-            @media (prefers-color-scheme: dark) {
-                .global-player {
-                    background: rgba(31, 41, 55, 0.95);
-                    border: 1px solid rgba(75, 85, 99, 0.3);
-                }
-
-                .gmp-title {
-                    color: #f9fafb;
-                }
-
-                .gmp-time, .gmp-status {
-                    color: #9ca3af;
-                }
-            }
-        `;
-
-        document.head.appendChild(style);
-    }
 }
 
 // Initialize immediately when script loads
-(function() {
+(function () {
     // Wait for DOM
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', () => {
@@ -739,8 +534,8 @@ class GlobalMiniPlayer {
         const player = window.globalMiniPlayer || window.__globalMiniPlayer;
         if (player && !player.currentTrack) {
             const isHomePage = window.location.pathname === '/' ||
-                              window.location.pathname === '/index.html' ||
-                              window.location.pathname.endsWith('/');
+                window.location.pathname === '/index.html' ||
+                window.location.pathname.endsWith('/');
 
             if (isHomePage) {
                 player.loadTrack({

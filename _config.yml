@@ -81,7 +81,8 @@ google:
   search_engine_id       : # YOUR_SEARCH_ENGINE_ID
   instant_search         : # false (default), true
 # SEO Related
-google_site_verification :
+# SEO Related
+google_site_verification : "google0c2d548856ca1079"
 bing_site_verification   :
 naver_site_verification  :  
 yandex_site_verification :
@@ -94,7 +95,7 @@ facebook:
   username               :
   app_id                 :
   publisher              :
-og_image                 : # Open Graph/Twitter default site image
+og_image                 : /assets/images/og-image.jpg
 # For specifying social profiles
 # - https://developers.google.com/structured-data/customize/social-profiles
 social:
@@ -190,7 +191,8 @@ exclude:
   - README
   - tmp
   - /docs # ignore Minimal Mistakes /docs
-  - /test # ignore Minimal Mistakes /test
+  - test
+  - spec
 keep_files:
   - .git
   - .svn
