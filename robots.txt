@@ -1,0 +1,21 @@
+# robots.txt for faransansj.github.io
+# SEO optimized for search engines
+
+User-agent: *
+Allow: /
+
+# Disallow crawling of non-public directories
+Disallow: /assets/js/vendor/
+Disallow: /assets/js/plugins/
+Disallow: /_test/
+Disallow: /404.html
+
+# Allow important directories
+Allow: /assets/images/
+Allow: /assets/css/
+
+# Crawl delay (optional, helps prevent server overload)
+# Crawl-delay: 1
+
+# Sitemap location
+Sitemap: https://faransansj.github.io/sitemap.xml
