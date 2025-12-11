@@ -1,8 +1,15 @@
 ---
 layout: single
 title: "[SNNTorch] Tutorial 1 - Spike Encoding"
+excerpt: "SNNTorch를 사용한 Spiking Neural Networks의 기초, Spike Encoding 방법을 배웁니다. Rate coding, Latency coding, Delta modulation 등 다양한 인코딩 기법을 실습합니다."
 categories: 
     - SNNTorch
+tags:
+    - SNN
+    - SNNTorch
+    - Spike Encoding
+    - Neural Networks
+    - PyTorch
 
 toc: true
 toc_sticky: true

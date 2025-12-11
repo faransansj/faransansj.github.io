@@ -1,6 +1,14 @@
 ---
 layout: single
 title: "2.1 Raspbian OS 설치"
+excerpt: "Raspberry Pi Imager를 사용하여 Raspbian OS를 설치하는 방법을 단계별로 안내합니다. 초보자도 쉽게 따라할 수 있는 설치 가이드입니다."
+categories: 
+    - Raspberry Pi
+tags:
+    - Raspberry Pi
+    - Raspbian
+    - OS Installation
+    - 라즈베리파이
 
 toc: true
 toc_sticky: true

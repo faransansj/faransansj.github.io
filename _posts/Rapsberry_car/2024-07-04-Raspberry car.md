@@ -1,6 +1,18 @@
 ---
 layout: archive
 title: "Raspberry Car"
+excerpt: "Raspberry Pi를 이용한 자율주행 모형 자동차 제작 가이드입니다. 기초부터 센서, 모터, 카메라 연동까지 단계별 튜토리얼을 제공합니다."
+categories: 
+    - Raspberry Pi
+tags:
+    - Raspberry Pi
+    - 자율주행
+    - IoT
+    - 라즈베리파이
+
+header:
+  teaser: /assets/images/og/raspberry-pi.png
+  og_image: /assets/images/og/raspberry-pi.png
 
 toc: true
 toc_sticky: true

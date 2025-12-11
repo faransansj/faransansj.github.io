@@ -1,7 +1,16 @@
 ---
 layout: single
 title: "Puang-Keyring 제작 가이드"
+excerpt: "OLED 디스플레이와 아두이노 나노를 이용해 귀여운 푸앙이 얼굴을 띄우는 키링을 만드는 가이드입니다. 회로 연결부터 프로그래밍, 조립까지 단계별로 상세히 설명합니다."
 categories: 
+    - CAU-COSS
+tags:
+    - Arduino
+    - OLED
+    - DIY
+    - 아두이노
+header:
+  teaser: /assets/images/post/CAU-COSS/KakaoTalk_20250520_082928200_02.jpg
 
 toc: true
 toc_sticky: true

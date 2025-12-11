@@ -1,6 +1,15 @@
 ---
 layout: single
 title: "2.3 Raspberry pi 성능 향상 시키기"
+excerpt: "RAM Swap 메모리 증설과 오버클럭을 통해 라즈베리파이 성능을 향상시키는 방법을 배웁니다. 벤치마크 테스트 코드도 포함되어 있습니다."
+categories: 
+    - Raspberry Pi
+tags:
+    - Raspberry Pi
+    - Overclock
+    - Performance
+    - 라즈베리파이
+    - 성능향상
 
 toc: true
 toc_sticky: true

@@ -1,6 +1,15 @@
 ---
 layout: single
 title: "3.2 SSH connect"
+excerpt: "SSH를 이용해 라즈베리파이를 원격으로 제어하는 방법을 배웁니다. PuTTY, CMD, VSCode를 사용한 세 가지 연결 방법을 상세히 설명합니다."
+categories: 
+    - Raspberry Pi
+tags:
+    - Raspberry Pi
+    - SSH
+    - Remote Control
+    - VSCode
+    - 라즈베리파이
 
 toc: true
 toc_sticky: true

@@ -1,8 +1,14 @@
 ---
 layout: single
 title: "[SNNTorch] Tutorial 2 - The Leaky integrate and fire neuron"
+excerpt: "Leaky Integrate-and-Fire(LIF) 뉴런 모델의 동작 원리를 배웁니다. SNNTorch로 LIF 뉴런을 구현하고 시뮬레이션하는 방법을 실습합니다."
 categories: 
     - SNNTorch
+tags:
+    - SNN
+    - SNNTorch
+    - LIF Neuron
+    - Neural Networks
 
 toc: true
 toc_sticky: true

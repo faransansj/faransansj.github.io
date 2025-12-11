@@ -1,8 +1,14 @@
 ---
 layout: single
 title: "[SNNTorch] Tutorial 3 - The Leaky integrate and fire neuron"
+excerpt: "LIF 뉴런의 고급 기능과 파라미터 튜닝 방법을 배웁니다. 뉴런의 시간 상수와 역치값 조정을 통한 최적화 기법을 다룹니다."
 categories: 
     - SNNTorch
+tags:
+    - SNN
+    - SNNTorch
+    - LIF Neuron
+    - Parameter Tuning
 
 toc: true
 toc_sticky: true

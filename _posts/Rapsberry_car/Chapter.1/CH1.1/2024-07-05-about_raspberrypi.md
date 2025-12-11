@@ -1,6 +1,15 @@
 ---
 layout: single
 title: "1.1 라즈베리파이 개요"
+excerpt: "라즈베리파이의 하드웨어 구조와 각 포트의 역할을 상세히 설명합니다. USB, HDMI, GPIO 핀 등의 기능과 적절한 전원 관리 방법을 배워보세요."
+categories: 
+    - Raspberry Pi
+tags:
+    - Raspberry Pi
+    - 라즈베리파이
+    - GPIO
+    - 임베디드
+    - Hardware
 
 toc: true
 toc_sticky: true
